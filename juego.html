@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DRACOMANIA JUEGO</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg0: #000000;
+      --bg1: #060101;
+      --red: #c0000a;
+      --red2: #8a0006;
+      --red3: #4a0004;
+      --bone: #c4b49a;
+      --bone2: #7a6858;
+      --border: #200606;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      min-height: 100%;
+      background:
+        radial-gradient(circle at top, rgba(140, 0, 6, 0.16), transparent 28%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 22%),
+        var(--bg0);
+      color: var(--bone);
+      font-family: "Press Start 2P", monospace;
+      image-rendering: pixelated;
+    }
+
+    body {
+      padding: 18px;
+      display: grid;
+      place-items: center;
+    }
+
+    .game-stage {
+      width: min(980px, 100%);
+      min-height: calc(100vh - 36px);
+      border: 4px solid var(--red3);
+      background:
+        linear-gradient(180deg, rgba(196, 180, 154, 0.04), rgba(0, 0, 0, 0)),
+        var(--bg1);
+      box-shadow: 8px 8px 0 #000000;
+      display: grid;
+      align-content: center;
+      gap: 18px;
+      padding: 24px;
+      text-align: center;
+    }
+
+    .game-kicker {
+      color: var(--bone2);
+      font-size: 7px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .game-title {
+      color: var(--red);
+      font-size: clamp(16px, 3vw, 28px);
+      line-height: 1.5;
+      text-shadow: 2px 2px 0 #000000;
+    }
+
+    .game-copy {
+      color: var(--bone);
+      font-size: clamp(8px, 1.2vw, 11px);
+      line-height: 2;
+      max-width: 62ch;
+      margin: 0 auto;
+    }
+
+    .game-card {
+      border: 3px solid var(--red3);
+      background:
+        linear-gradient(180deg, rgba(196, 180, 154, 0.05), rgba(0, 0, 0, 0)),
+        #050000;
+      padding: 18px;
+      display: grid;
+      gap: 12px;
+      box-shadow: 4px 4px 0 #000000;
+    }
+
+    .game-card-title {
+      color: var(--red);
+      font-size: 8px;
+      text-transform: uppercase;
+    }
+
+    .game-card-copy {
+      color: var(--bone2);
+      font-size: 7px;
+      line-height: 2;
+    }
+  </style>
+</head>
+<body>
+  <main class="game-stage">
+    <p class="game-kicker">Archivo HTML del juego</p>
+    <h1 class="game-title">DRACOMANIA JUEGO</h1>
+    <p class="game-copy">
+      Esta seccion ya carga un HTML real independiente del reproductor. Aqui puedes
+      construir o reemplazar el minijuego completo cuando quieras.
+    </p>
+
+    <section class="game-card">
+      <h2 class="game-card-title">Zona de juego</h2>
+      <p class="game-card-copy">
+        Sustituye el contenido de este archivo por tu juego, canvas, escena interactiva
+        o cualquier experiencia HTML que quieras meter en DRACOMANIA.
+      </p>
+    </section>
+  </main>
+</body>
+</html>

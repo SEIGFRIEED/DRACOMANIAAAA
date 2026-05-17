@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DRACOMANIA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <section class="wmp-window">
+
+      <!-- TITLE BAR -->
+      <header class="xp-titlebar">
+        <div class="xp-title-left">
+          <span class="xp-app-icon" aria-hidden="true"></span>
+          <span>DRACOMANIA</span>
+        </div>
+        <div class="xp-window-actions" aria-hidden="true">
+          <span class="xp-action">_</span>
+          <span class="xp-action">□</span>
+          <span class="xp-action xp-close">×</span>
+        </div>
+      </header>
+
+
+      <!-- PLAYER FRAME -->
+      <div class="player-frame">
+
+        <!-- LEFT NAV -->
+        <aside class="left-nav">
+          <button class="nav-item game-target active" data-game-id="nav-reproductor" data-panel="reproductor" type="button">Reproductor</button>
+          <button class="nav-item game-target" data-game-id="nav-creditos" data-panel="creditos" type="button">Créditos</button>
+          <button class="nav-item game-target" data-game-id="nav-historia" data-panel="historia" type="button">Historia</button>
+          <button class="nav-item game-target" data-game-id="nav-juego" data-panel="juego" type="button">Juego</button>
+          <button class="nav-item game-target" data-game-id="nav-artworks" data-panel="artworks" type="button">Arte</button>
+        </aside>
+
+        <!-- MAIN STAGE -->
+        <section class="main-stage" id="main-stage">
+          <div class="visual-card">
+
+            <!-- TRACK HEAD -->
+            <div class="track-head">
+              <p id="artist-name">DRACOMANIA</p>
+              <h1 id="track-name">Agrega pistas nuevas al álbum.</h1>
+            </div>
+
+            <!-- CRT SCREEN -->
+            <div class="visual-stage" id="cover-art">
+              <div class="visual-clouds" aria-hidden="true"></div>
+              <div class="visual-wordmark" aria-hidden="true">
+                <span>DRACOMANIA</span>
+              </div>
+              <div class="stage-glass"></div>
+              <div class="visual-rings" aria-hidden="true"></div>
+              <div class="spectrum-line" id="spectrum"></div>
+            </div>
+
+            <!-- NOW PLAYING -->
+            <div class="now-playing-panel">
+              <div class="mini-cover" id="mini-cover">
+                <img class="mini-cover-image" id="mini-cover-image" alt="Portada del álbum" />
+              </div>
+              <div class="panel-meta">
+                <h2 id="panel-track-title">INTRO</h2>
+                <p id="panel-track-artist">@dravenn</p>
+              </div>
+            </div>
+
+            <!-- SEEK -->
+            <div class="seek-area">
+              <div class="seek-topline">
+                <span id="transport-state">■ DETENIDO</span>
+                <span id="time-display">00:00</span>
+              </div>
+              <input id="seek-bar" type="range" min="0" max="100" value="0" />
+            </div>
+          </div>
+
+          <!-- CONTROL DECK -->
+          <footer class="control-deck">
+            <div class="transport-cluster">
+              <button class="chrome-button large game-target" data-action="play" data-game-id="transport-play" type="button">▶</button>
+              <button class="chrome-button game-target" data-action="pause" data-game-id="transport-pause" type="button">❚❚</button>
+              <button class="chrome-button game-target" data-action="stop" data-game-id="transport-stop" type="button">■</button>
+              <button class="chrome-button game-target" data-action="prev" data-game-id="transport-prev" type="button">⏮</button>
+              <button class="chrome-button game-target" data-action="next" data-game-id="transport-next" type="button">⏭</button>
+            </div>
+            <div class="deck-sliders">
+              <label class="deck-slider">
+                <span>VOLUMEN</span>
+                <input id="volume-bar" type="range" min="0" max="1" step="0.01" value="0.82" />
+              </label>
+              <label class="deck-slider">
+                <span>BRILLO</span>
+                <input id="glow-bar" type="range" min="0" max="100" value="72" />
+              </label>
+            </div>
+            <div class="deck-toggle-group">
+              <button class="tiny-toggle game-target" data-game-id="toggle-shuffle" id="shuffle-button" type="button">⇄ ALEATORIO NO</button>
+              <button class="tiny-toggle game-target active" data-game-id="toggle-repeat" id="repeat-button" type="button">↺ REPETICIÓN SI</button>
+            </div>
+          </footer>
+        </section>
+
+        <!-- PLAYLIST -->
+        <section class="content-window" id="content-window" hidden>
+          <div class="content-window-head">
+            <p id="content-window-kicker">SECCIÓN</p>
+            <h2 id="content-window-title">CRÉDITOS</h2>
+          </div>
+          <div class="content-window-body" id="content-window-body"></div>
+        </section>
+
+        <aside class="playlist-panel" id="playlist-panel">
+          <div class="playlist-topbar">
+            <div class="playlist-select" id="panel-label">▼ REPRODUCTOR</div>
+          </div>
+          <div class="playlist-screen">
+            <div class="playlist-header">
+              <span id="panel-header-title">▶ LISTA DE PISTAS</span>
+              <span id="playlist-count">00 PISTAS</span>
+            </div>
+            <ol class="playlist-list" id="playlist"></ol>
+          </div>
+          <div class="playlist-footer">
+            <span><span id="panel-footer-label">TIEMPO:</span> <strong id="panel-footer-value">00:00</strong></span>
+            <span class="game-hud"></span>
+            <span id="current-clock">00:00</span>
+          </div>
+        </aside>
+      </div>
+
+      <audio id="audio-player" preload="metadata"></audio>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
