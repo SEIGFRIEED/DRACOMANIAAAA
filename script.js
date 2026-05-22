@@ -37,10 +37,10 @@ const albumConfig = {
   },
   credits: {
     creador: ["@dracopulsee"],
-    artistas: ["@3stasyyy"],
-    productores: ["@tecnice"],
+    artistas: ["@3stasyyy"],["@kanno"], ["@santo"]
+    productores: ["@tecnice"],["@dravenn"], ["@atlzage"], ["@chimionthebeat"], ["deadboyelie"]
     disenadores: ["@seig.psd"],
-    directoresDeArte: ["Agregar en código"],
+    directoresDeArte: ["@dracopulsee"],["@seig.psd"]
   },
   artworks: [
     {
