@@ -1605,11 +1605,6 @@ function setPanelView(view) {
     return;
   }
 
-  if (view === "juego") {
-    renderGameWindow();
-    return;
-  }
-
   renderArtworksWindow();
 }
 

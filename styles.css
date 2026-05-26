@@ -425,8 +425,8 @@
     }
 
     .icon-player {
-      width: 56px;
-      height: 56px;
+      width: 48px;
+      height: 48px;
       background: center / contain no-repeat url("assets/system/player-icon-transparent.png");
       filter: none;
     }
@@ -2862,19 +2862,23 @@
     }
 
     body.is-phone-device.is-phone-portrait .player-frame {
-      grid-template-columns: 1fr;
-      grid-template-rows: auto minmax(0, 1fr);
-      align-content: start;
+      display: flex;
+      flex-direction: column;
       min-height: 0;
+      height: 100%;
+      overflow-x: hidden;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
 
     body.is-phone-device.is-phone-portrait .left-nav {
       display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       border-right: none;
       border-bottom: 2px solid var(--red3);
       padding: 0;
       gap: 0;
+      flex: 0 0 auto;
     }
 
     body.is-phone-device.is-phone-portrait .nav-item {
@@ -2908,7 +2912,7 @@
     }
 
     body.is-phone-device.is-phone-portrait .main-stage {
-      grid-row: 2;
+      flex: 0 0 auto;
       min-height: 0;
     }
 
@@ -3048,7 +3052,13 @@
     }
 
     body.is-phone-device.is-phone-portrait .playlist-panel {
-      display: none;
+      display: grid;
+      flex: 0 0 auto;
+      grid-column: auto;
+      grid-row: auto;
+      min-height: 218px;
+      border-left: none;
+      border-top: 2px solid var(--red3);
     }
 
     body.is-phone-device.is-phone-portrait .playlist-topbar {
@@ -3067,6 +3077,7 @@
 
     body.is-phone-device.is-phone-portrait .playlist-list {
       padding: 5px;
+      max-height: 34vh;
     }
 
     body.is-phone-device.is-phone-portrait .playlist-item button {
@@ -3087,11 +3098,19 @@
     }
 
     body.is-phone-device.is-phone-portrait .content-window {
-      grid-row: 2;
+      flex: 1 1 auto;
       grid-column: 1 / -1;
       min-height: 0;
       border-left: none;
       border-top: 2px solid var(--red3);
+    }
+
+    body.is-phone-device.is-phone-portrait .desktop-icon-art.icon-trash,
+    body.is-phone-device.is-phone-portrait .desktop-icon-art.icon-player,
+    body.is-phone-device.is-phone-portrait .desktop-icon-art.icon-game {
+      width: 48px;
+      height: 48px;
+      background-size: 48px 48px;
     }
 
     body.is-phone-device.is-phone-portrait .content-window-head {
