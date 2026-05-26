@@ -88,12 +88,37 @@ const state = {
   storyVoiceStatus: "idle",
   storyVoiceTime: "00:00",
   storyVoiceDuration: "--:--",
+  bootStarted: false,
+  bootComplete: false,
+  nextWindowZ:  20,
+  windows: {
+    reproductor: { open: false, minimized: false, maximized: false, zIndex: 20 },
+    juego:       { open: false, minimized: false, maximized: false, zIndex: 21 },
+  },
+  startMenuOpen: false,
 };
 
 const el = {
+  appShell:          document.getElementById("app-shell"),
+  orientationGate:   document.getElementById("orientation-gate"),
+  bootSequence:      document.getElementById("boot-sequence"),
+  bootScreens:       Array.from(document.querySelectorAll("[data-boot-screen]")),
+  bootFill1:         document.getElementById("boot-fill-1"),
+  bootFill2:         document.getElementById("boot-fill-2"),
+  desktopClock:      document.getElementById("desktop-clock"),
+  startButton:       document.getElementById("start-button"),
+  startMenu:         document.getElementById("start-menu"),
+  startLaunchers:    Array.from(document.querySelectorAll("[data-start-launch]")),
   audio:             document.getElementById("audio-player"),
   artistName:        document.getElementById("artist-name"),
   navItems:          Array.from(document.querySelectorAll(".nav-item")),
+  programLaunchers:  Array.from(document.querySelectorAll("[data-program-launch]")),
+  taskbarButtons:    Array.from(document.querySelectorAll("[data-program-toggle]")),
+  windowActionButtons: Array.from(document.querySelectorAll("[data-window-action]")),
+  windows: {
+    reproductor: document.getElementById("window-reproductor"),
+    juego: document.getElementById("window-juego"),
+  },
   mainStage:         document.getElementById("main-stage"),
   playlistPanel:     document.getElementById("playlist-panel"),
   contentWindow:     document.getElementById("content-window"),
@@ -121,6 +146,7 @@ const el = {
   glowBar:           document.getElementById("glow-bar"),
   shuffleButton:     document.getElementById("shuffle-button"),
   repeatButton:      document.getElementById("repeat-button"),
+  gameProgramFrame:  document.getElementById("game-program-frame"),
 };
 
 function init() {
@@ -139,8 +165,152 @@ function init() {
   setPanelView("reproductor");
   syncGlow();
   tickClock();
+  renderTaskbarPrograms();
   startVisualizer();
-  syncGameSelection(state.playlist.length ? "playlist-0" : "transport-play");
+  updateOrientationGate();
+  void startExperience();
+}
+
+async function startExperience() {
+  updateOrientationGate();
+
+  if (state.bootStarted || state.bootComplete) return;
+  if (shouldPauseForPhoneOrientation()) return;
+
+  await launchBootSequence();
+}
+
+async function launchBootSequence() {
+  if (state.bootStarted || state.bootComplete) return;
+
+  state.bootStarted = true;
+  updateOrientationGate();
+  el.bootSequence.hidden = false;
+
+  await runBootSequence();
+  revealDesktop();
+}
+
+async function runBootSequence() {
+  const stages = [
+    { index: 0, fill: el.bootFill1, duration: 1900 },
+    { index: 1, fill: el.bootFill2, duration: 2200 },
+  ];
+
+  for (const stage of stages) {
+    showBootScreen(stage.index);
+    await animateBootFill(stage.fill, stage.duration);
+    await wait(200);
+  }
+
+  el.bootSequence.classList.add("is-finished");
+  await wait(360);
+  el.bootSequence.hidden = true;
+}
+
+function revealDesktop() {
+  state.bootComplete = true;
+  el.appShell.hidden = false;
+  updateOrientationGate();
+  syncGameSelection("desktop-reproductor");
+}
+
+function handleViewportChange() {
+  updateOrientationGate();
+
+  if (!state.bootStarted && !state.bootComplete && !shouldPauseForPhoneOrientation()) {
+    void launchBootSequence();
+  }
+}
+
+function shouldPauseForPhoneOrientation() {
+  return isPhoneDevice() && isPortraitOrientation();
+}
+
+function isPhoneDevice() {
+  const mobileUserAgent = navigator.userAgentData?.mobile
+    ?? /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(navigator.userAgent);
+  const shortSide = Math.min(window.innerWidth, window.innerHeight);
+  const longSide = Math.max(window.innerWidth, window.innerHeight);
+
+  return Boolean(mobileUserAgent && shortSide <= 540 && longSide <= 1024);
+}
+
+function isPortraitOrientation() {
+  return window.matchMedia("(orientation: portrait)").matches || window.innerHeight > window.innerWidth;
+}
+
+function updateOrientationGate() {
+  const shouldShowGate = isPhoneDevice() && isPortraitOrientation() && (!state.bootStarted || state.bootComplete);
+
+  if (el.orientationGate) {
+    el.orientationGate.hidden = !shouldShowGate;
+  }
+
+  document.body.classList.toggle("orientation-gate-visible", shouldShowGate);
+
+  if (!state.bootStarted) {
+    el.bootSequence.hidden = shouldShowGate;
+  }
+
+  if (state.bootComplete) {
+    el.appShell.hidden = false;
+    return;
+  }
+
+  if (shouldShowGate) {
+    el.appShell.hidden = true;
+  }
+}
+
+function toggleStartMenu() {
+  if (state.startMenuOpen) {
+    closeStartMenu();
+    return;
+  }
+
+  openStartMenu();
+}
+
+function openStartMenu() {
+  if (!el.startMenu || !el.startButton) return;
+
+  state.startMenuOpen = true;
+  el.startMenu.hidden = false;
+  el.startButton.classList.add("is-open");
+  syncGameSelection("start-reproductor");
+}
+
+function closeStartMenu() {
+  if (!el.startMenu || !el.startButton || !state.startMenuOpen) return;
+
+  state.startMenuOpen = false;
+  el.startMenu.hidden = true;
+  el.startButton.classList.remove("is-open");
+}
+
+function showBootScreen(index) {
+  el.bootScreens.forEach((screen, screenIndex) => {
+    screen.classList.toggle("is-active", screenIndex === index);
+  });
+}
+
+function animateBootFill(fillElement, duration) {
+  if (!(fillElement instanceof HTMLElement)) return Promise.resolve();
+
+  fillElement.style.transition = "none";
+  fillElement.style.transform = "scaleX(0)";
+  void fillElement.offsetWidth;
+  fillElement.style.transition = `transform ${duration}ms linear`;
+  fillElement.style.transform = "scaleX(1)";
+
+  return wait(duration + 40);
+}
+
+function wait(duration) {
+  return new Promise(resolve => {
+    window.setTimeout(resolve, duration);
+  });
 }
 
 function bindEvents() {
@@ -182,6 +352,52 @@ function bindEvents() {
     btn.addEventListener("click", () => setPanelView(btn.dataset.panel));
   });
 
+  el.programLaunchers.forEach(button => {
+    button.addEventListener("click", () => {
+      openProgram(button.dataset.programLaunch);
+    });
+  });
+
+  el.startButton?.addEventListener("click", event => {
+    event.stopPropagation();
+    toggleStartMenu();
+  });
+
+  el.startLaunchers.forEach(button => {
+    button.addEventListener("click", () => {
+      closeStartMenu();
+      openProgram(button.dataset.startLaunch);
+    });
+  });
+
+  el.taskbarButtons.forEach(button => {
+    button.addEventListener("click", () => {
+      toggleProgramFromTaskbar(button.dataset.programToggle);
+    });
+  });
+
+  el.windowActionButtons.forEach(button => {
+    button.addEventListener("click", event => {
+      event.stopPropagation();
+      handleWindowAction(button.dataset.windowAction, button.dataset.windowTarget);
+    });
+  });
+
+  Object.entries(el.windows).forEach(([program, windowElement]) => {
+    if (!(windowElement instanceof HTMLElement)) return;
+
+    windowElement.addEventListener("mousedown", () => {
+      closeStartMenu();
+      focusProgram(program);
+    });
+  });
+
+  document.addEventListener("click", event => {
+    if (!(event.target instanceof Node)) return;
+    if (el.startButton?.contains(event.target) || el.startMenu?.contains(event.target)) return;
+    closeStartMenu();
+  });
+
   el.shuffleButton.addEventListener("click", () => {
     state.shuffle = !state.shuffle;
     el.shuffleButton.textContent = state.shuffle ? "⇄ ALEATORIO SI" : "⇄ ALEATORIO NO";
@@ -194,7 +410,196 @@ function bindEvents() {
     el.repeatButton.classList.toggle("active", state.repeat);
   });
 
+  window.addEventListener("resize", handleViewportChange);
+  window.addEventListener("orientationchange", handleViewportChange);
+
   bindGameNavigation();
+}
+
+function handleWindowAction(action, program) {
+  if (!program) return;
+
+  if (action === "minimize") {
+    minimizeProgram(program);
+    return;
+  }
+
+  if (action === "maximize") {
+    toggleMaximizeProgram(program);
+    return;
+  }
+
+  if (action === "close") {
+    closeProgram(program);
+    return;
+  }
+
+  focusProgram(program);
+}
+
+function openProgram(program) {
+  if (!program || !el.windows[program]) return;
+
+  closeStartMenu();
+
+  const windowState = state.windows[program];
+  const windowElement = el.windows[program];
+  if (!windowState || !(windowElement instanceof HTMLElement)) return;
+
+  if (program === "juego" && el.gameProgramFrame && !el.gameProgramFrame.src) {
+    el.gameProgramFrame.src = resolveAssetPath(el.gameProgramFrame.dataset.src || albumConfig.game.htmlSrc);
+  }
+
+  windowState.open = true;
+  windowState.minimized = false;
+  windowElement.hidden = false;
+  focusProgram(program);
+  syncWindowPresentation(program);
+  renderTaskbarPrograms();
+  syncGameSelection(getDefaultSelectionId(program));
+}
+
+function closeProgram(program) {
+  if (!program || !el.windows[program]) return;
+
+  const windowState = state.windows[program];
+  const windowElement = el.windows[program];
+  if (!windowState || !(windowElement instanceof HTMLElement)) return;
+
+  windowState.open = false;
+  windowState.minimized = false;
+  windowElement.hidden = true;
+  windowElement.classList.remove("is-focused");
+  syncWindowPresentation(program);
+
+  if (program === "reproductor") {
+    pauseCurrentTrack();
+    stopStoryVoice();
+  }
+
+  renderTaskbarPrograms();
+  syncGameSelection(`desktop-${program}`);
+}
+
+function minimizeProgram(program) {
+  const windowState = state.windows[program];
+  const windowElement = el.windows[program];
+  if (!windowState || !(windowElement instanceof HTMLElement) || !windowState.open) return;
+
+  windowState.minimized = true;
+  windowElement.hidden = true;
+  windowElement.classList.remove("is-focused");
+  renderTaskbarPrograms();
+  syncGameSelection(`task-${program}`);
+}
+
+function toggleMaximizeProgram(program) {
+  const windowState = state.windows[program];
+  const windowElement = el.windows[program];
+  if (!windowState || !(windowElement instanceof HTMLElement) || !windowState.open) return;
+
+  windowState.maximized = !windowState.maximized;
+  syncWindowPresentation(program);
+  focusProgram(program);
+}
+
+function focusProgram(program) {
+  const windowState = state.windows[program];
+  const windowElement = el.windows[program];
+  if (!windowState || !(windowElement instanceof HTMLElement) || !windowState.open) return;
+
+  if (windowState.minimized) {
+    windowState.minimized = false;
+    windowElement.hidden = false;
+  }
+
+  state.nextWindowZ += 1;
+  windowState.zIndex = state.nextWindowZ;
+  windowElement.style.zIndex = String(windowState.zIndex);
+
+  Object.entries(el.windows).forEach(([windowProgram, element]) => {
+    if (element instanceof HTMLElement) {
+      element.classList.toggle("is-focused", windowProgram === program && !element.hidden);
+    }
+  });
+
+  renderTaskbarPrograms();
+}
+
+function syncWindowPresentation(program) {
+  const windowState = state.windows[program];
+  const windowElement = el.windows[program];
+  const maximizeButton = document.querySelector(`[data-window-action="maximize"][data-window-target="${program}"]`);
+  const programLabel = program === "juego" ? "juego" : "reproductor";
+
+  if (!windowState || !(windowElement instanceof HTMLElement)) return;
+
+  windowElement.classList.toggle("is-maximized", Boolean(windowState.maximized));
+
+  if (maximizeButton instanceof HTMLElement) {
+    maximizeButton.setAttribute(
+      "aria-label",
+      windowState.maximized ? `Restaurar ${programLabel}` : `Expandir ${programLabel}`,
+    );
+  }
+}
+
+function toggleProgramFromTaskbar(program) {
+  const windowState = state.windows[program];
+  if (!windowState) return;
+
+  closeStartMenu();
+
+  if (!windowState.open) {
+    openProgram(program);
+    return;
+  }
+
+  if (windowState.minimized) {
+    openProgram(program);
+    return;
+  }
+
+  if (getFocusedProgram() !== program) {
+    focusProgram(program);
+    syncGameSelection(getDefaultSelectionId(program));
+    return;
+  }
+
+  minimizeProgram(program);
+}
+
+function renderTaskbarPrograms() {
+  const focusedProgram = getFocusedProgram();
+
+  el.taskbarButtons.forEach(button => {
+    const program = button.dataset.programToggle;
+    const windowState = program ? state.windows[program] : null;
+    const isOpen = Boolean(windowState?.open);
+
+    button.hidden = !isOpen;
+    button.classList.toggle("is-focused", Boolean(isOpen && focusedProgram === program));
+  });
+}
+
+function getFocusedProgram() {
+  return Object.entries(state.windows)
+    .filter(([, windowState]) => windowState.open && !windowState.minimized)
+    .sort(([, a], [, b]) => b.zIndex - a.zIndex)[0]?.[0] || null;
+}
+
+function getDefaultSelectionId(program) {
+  if (program === "juego") return "game-close";
+
+  if (state.panelView === "reproductor") {
+    return state.playlist.length ? `playlist-${state.currentIndex}` : "transport-play";
+  }
+
+  if (state.panelView === "historia") {
+    return state.storyMode ? `story-choice-${state.storyMode}` : "story-choice-read";
+  }
+
+  return `nav-${state.panelView}`;
 }
 
 function buildSpectrum() {
@@ -809,11 +1214,21 @@ function getCreditValues(values) {
 
 function tickClock() {
   const refresh = () => {
-    el.currentClock.textContent = new Date().toLocaleTimeString("es-DO", {
+    const now = new Date();
+
+    el.currentClock.textContent = now.toLocaleTimeString("es-DO", {
       hour: "2-digit",
       minute: "2-digit",
       second: "2-digit",
     });
+
+    if (el.desktopClock) {
+      el.desktopClock.textContent = now.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      });
+    }
   };
 
   refresh();
@@ -1153,11 +1568,6 @@ function setPanelView(view) {
 
   if (view === "historia") {
     renderStoryWindow();
-    return;
-  }
-
-  if (view === "juego") {
-    renderGameWindow();
     return;
   }
 

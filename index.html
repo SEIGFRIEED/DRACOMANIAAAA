@@ -10,132 +10,263 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <main class="app-shell">
-    <section class="wmp-window">
-
-      <!-- TITLE BAR -->
-      <header class="xp-titlebar">
-        <div class="xp-title-left">
-          <span class="xp-app-icon" aria-hidden="true"></span>
-          <span>DRACOMANIA</span>
-        </div>
-        <div class="xp-window-actions" aria-hidden="true">
-          <span class="xp-action">_</span>
-          <span class="xp-action">□</span>
-          <span class="xp-action xp-close">×</span>
-        </div>
-      </header>
-
-
-      <!-- PLAYER FRAME -->
-      <div class="player-frame">
-
-        <!-- LEFT NAV -->
-        <aside class="left-nav">
-          <button class="nav-item game-target active" data-game-id="nav-reproductor" data-panel="reproductor" type="button">Reproductor</button>
-          <button class="nav-item game-target" data-game-id="nav-creditos" data-panel="creditos" type="button">Créditos</button>
-          <button class="nav-item game-target" data-game-id="nav-historia" data-panel="historia" type="button">Historia</button>
-          <button class="nav-item game-target" data-game-id="nav-juego" data-panel="juego" type="button">Juego</button>
-          <button class="nav-item game-target" data-game-id="nav-artworks" data-panel="artworks" type="button">Arte</button>
-        </aside>
-
-        <!-- MAIN STAGE -->
-        <section class="main-stage" id="main-stage">
-          <div class="visual-card">
-
-            <!-- TRACK HEAD -->
-            <div class="track-head">
-              <p id="artist-name">DRACOMANIA</p>
-              <h1 id="track-name">Agrega pistas nuevas al álbum.</h1>
-            </div>
-
-            <!-- CRT SCREEN -->
-            <div class="visual-stage" id="cover-art">
-              <div class="visual-clouds" aria-hidden="true"></div>
-              <div class="visual-wordmark" aria-hidden="true">
-                <span>DRACOMANIA</span>
-              </div>
-              <div class="stage-glass"></div>
-              <div class="visual-rings" aria-hidden="true"></div>
-              <div class="spectrum-line" id="spectrum"></div>
-            </div>
-
-            <!-- NOW PLAYING -->
-            <div class="now-playing-panel">
-              <div class="mini-cover" id="mini-cover">
-                <img class="mini-cover-image" id="mini-cover-image" alt="Portada del álbum" />
-              </div>
-              <div class="panel-meta">
-                <h2 id="panel-track-title">INTRO</h2>
-                <p id="panel-track-artist">@dravenn</p>
-              </div>
-            </div>
-
-            <!-- SEEK -->
-            <div class="seek-area">
-              <div class="seek-topline">
-                <span id="transport-state">■ DETENIDO</span>
-                <span id="time-display">00:00</span>
-              </div>
-              <input id="seek-bar" type="range" min="0" max="100" value="0" />
-            </div>
-          </div>
-
-          <!-- CONTROL DECK -->
-          <footer class="control-deck">
-            <div class="transport-cluster">
-              <button class="chrome-button large game-target" data-action="play" data-game-id="transport-play" type="button">▶</button>
-              <button class="chrome-button game-target" data-action="pause" data-game-id="transport-pause" type="button">❚❚</button>
-              <button class="chrome-button game-target" data-action="stop" data-game-id="transport-stop" type="button">■</button>
-              <button class="chrome-button game-target" data-action="prev" data-game-id="transport-prev" type="button">⏮</button>
-              <button class="chrome-button game-target" data-action="next" data-game-id="transport-next" type="button">⏭</button>
-            </div>
-            <div class="deck-sliders">
-              <label class="deck-slider">
-                <span>VOLUMEN</span>
-                <input id="volume-bar" type="range" min="0" max="1" step="0.01" value="0.82" />
-              </label>
-              <label class="deck-slider">
-                <span>BRILLO</span>
-                <input id="glow-bar" type="range" min="0" max="100" value="72" />
-              </label>
-            </div>
-            <div class="deck-toggle-group">
-              <button class="tiny-toggle game-target" data-game-id="toggle-shuffle" id="shuffle-button" type="button">⇄ ALEATORIO NO</button>
-              <button class="tiny-toggle game-target active" data-game-id="toggle-repeat" id="repeat-button" type="button">↺ REPETICIÓN SI</button>
-            </div>
-          </footer>
-        </section>
-
-        <!-- PLAYLIST -->
-        <section class="content-window" id="content-window" hidden>
-          <div class="content-window-head">
-            <p id="content-window-kicker">SECCIÓN</p>
-            <h2 id="content-window-title">CRÉDITOS</h2>
-          </div>
-          <div class="content-window-body" id="content-window-body"></div>
-        </section>
-
-        <aside class="playlist-panel" id="playlist-panel">
-          <div class="playlist-topbar">
-            <div class="playlist-select" id="panel-label">▼ REPRODUCTOR</div>
-          </div>
-          <div class="playlist-screen">
-            <div class="playlist-header">
-              <span id="panel-header-title">▶ LISTA DE PISTAS</span>
-              <span id="playlist-count">00 PISTAS</span>
-            </div>
-            <ol class="playlist-list" id="playlist"></ol>
-          </div>
-          <div class="playlist-footer">
-            <span><span id="panel-footer-label">TIEMPO:</span> <strong id="panel-footer-value">00:00</strong></span>
-            <span class="game-hud"></span>
-            <span id="current-clock">00:00</span>
-          </div>
-        </aside>
+  <section class="orientation-gate" id="orientation-gate" aria-live="polite" hidden>
+    <div class="orientation-card">
+      <div class="orientation-visual" aria-hidden="true">
+        <span class="orientation-device"></span>
+        <span class="orientation-arrow"></span>
       </div>
+      <p class="orientation-kicker">VOLTIC 95 MOBILE</p>
+      <h1 class="orientation-title">GIRA EL TELEFONO PARA MEJOR EXPERIENCIA</h1>
+      <p class="orientation-copy">Cuando lo pongas horizontal, el sistema iniciara automaticamente.</p>
+    </div>
+  </section>
 
-      <audio id="audio-player" preload="metadata"></audio>
+  <section class="boot-sequence" id="boot-sequence" aria-label="Secuencia de inicio">
+    <div class="boot-screen is-active" data-boot-screen="0">
+      <div class="boot-art-frame">
+        <img class="boot-art" src="assets/system/boot-1.png" alt="Pantalla de inicio VOLTIC 95" />
+        <div class="boot-progress-shell boot-progress-shell-one" aria-hidden="true">
+          <div class="boot-progress-fill boot-progress-fill-primary" id="boot-fill-1"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="boot-screen" data-boot-screen="1">
+      <div class="boot-art-frame">
+        <img class="boot-art" src="assets/system/boot-2.png" alt="Pantalla de carga VOLTIC 95" />
+        <div class="boot-progress-shell boot-progress-shell-two" aria-hidden="true">
+          <div class="boot-progress-fill boot-progress-fill-secondary" id="boot-fill-2"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <main class="app-shell" id="app-shell" hidden>
+    <section class="desktop-shell" aria-label="Sistema DRACOMANIA">
+      <div class="desktop-backdrop" aria-hidden="true"></div>
+
+      <nav class="desktop-icons desktop-icons-left" aria-label="Accesos del sistema y programas">
+        <button class="desktop-icon game-target" data-game-id="desktop-trash" type="button">
+          <span class="desktop-icon-art icon-trash" aria-hidden="true"></span>
+          <span class="desktop-icon-label">TRASH</span>
+        </button>
+
+        <button
+          class="desktop-icon game-target"
+          data-program-launch="reproductor"
+          data-game-id="desktop-reproductor"
+          type="button"
+        >
+          <span class="desktop-icon-art icon-player" aria-hidden="true"></span>
+          <span class="desktop-icon-label">REPRODUCTOR.EXE</span>
+        </button>
+
+        <button
+          class="desktop-icon game-target"
+          data-program-launch="juego"
+          data-game-id="desktop-juego"
+          type="button"
+        >
+          <span class="desktop-icon-art icon-game" aria-hidden="true"></span>
+          <span class="desktop-icon-label">JUEGO.EXE</span>
+        </button>
+      </nav>
+
+      <footer class="desktop-taskbar-shell">
+        <div class="start-zone">
+          <button class="start-button game-target" id="start-button" data-game-id="task-start" type="button">
+            <span class="start-button-logo" aria-hidden="true"></span>
+            <span>Start</span>
+          </button>
+
+          <div class="start-menu" id="start-menu" hidden>
+            <div class="start-menu-strip">
+              <span>VOLTIC 95</span>
+            </div>
+
+            <div class="start-menu-main">
+              <button class="start-menu-item game-target" data-start-launch="reproductor" data-game-id="start-reproductor" type="button">
+                <span class="start-menu-item-art icon-player" aria-hidden="true"></span>
+                <span>DRACOMANIA REPRODUCTOR</span>
+              </button>
+
+              <button class="start-menu-item game-target" data-start-launch="juego" data-game-id="start-juego" type="button">
+                <span class="start-menu-item-art icon-game" aria-hidden="true"></span>
+                <span>DRACOMANIA JUEGO</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="desktop-taskbar" id="desktop-taskbar" aria-label="Programas abiertos">
+          <button
+            class="taskbar-program game-target"
+            data-program-toggle="reproductor"
+            data-game-id="task-reproductor"
+            type="button"
+            hidden
+          >
+            REPRODUCTOR
+          </button>
+          <button
+            class="taskbar-program game-target"
+            data-program-toggle="juego"
+            data-game-id="task-juego"
+            type="button"
+            hidden
+          >
+            JUEGO
+          </button>
+        </div>
+
+        <div class="desktop-tray" aria-label="Bandeja del sistema">
+          <span class="tray-icon tray-network" aria-hidden="true"></span>
+          <span class="tray-icon tray-speaker" aria-hidden="true"></span>
+          <span class="tray-icon tray-drive" aria-hidden="true"></span>
+          <div class="desktop-clock" id="desktop-clock">00:00</div>
+        </div>
+      </footer>
+
+      <section class="desktop-window desktop-window-player" id="window-reproductor" data-window="reproductor" hidden>
+        <section class="wmp-window">
+          <header class="xp-titlebar">
+            <div class="xp-title-left">
+              <span class="xp-app-icon" aria-hidden="true"></span>
+              <span>DRACOMANIA PLAYER</span>
+            </div>
+            <div class="xp-window-actions">
+              <button class="xp-action game-target" data-window-action="minimize" data-window-target="reproductor" data-game-id="player-minimize" type="button" aria-label="Minimizar reproductor">_</button>
+              <button class="xp-action game-target" data-window-action="maximize" data-window-target="reproductor" data-game-id="player-focus" type="button" aria-label="Expandir reproductor">□</button>
+              <button class="xp-action xp-close game-target" data-window-action="close" data-window-target="reproductor" data-game-id="player-close" type="button" aria-label="Cerrar reproductor">×</button>
+            </div>
+          </header>
+
+          <div class="player-frame">
+            <aside class="left-nav">
+              <button class="nav-item game-target active" data-game-id="nav-reproductor" data-panel="reproductor" type="button">Reproductor</button>
+              <button class="nav-item game-target" data-game-id="nav-creditos" data-panel="creditos" type="button">Créditos</button>
+              <button class="nav-item game-target" data-game-id="nav-historia" data-panel="historia" type="button">Historia</button>
+              <button class="nav-item game-target" data-game-id="nav-artworks" data-panel="artworks" type="button">Arte</button>
+            </aside>
+
+            <section class="main-stage" id="main-stage">
+              <div class="visual-card">
+                <div class="track-head">
+                  <p id="artist-name">DRACOMANIA</p>
+                  <h1 id="track-name">Agrega pistas nuevas al álbum.</h1>
+                </div>
+
+                <div class="visual-stage" id="cover-art">
+                  <div class="visual-clouds" aria-hidden="true"></div>
+                  <div class="visual-wordmark" aria-hidden="true">
+                    <span>DRACOMANIA</span>
+                  </div>
+                  <div class="stage-glass"></div>
+                  <div class="visual-rings" aria-hidden="true"></div>
+                  <div class="spectrum-line" id="spectrum"></div>
+                </div>
+
+                <div class="now-playing-panel">
+                  <div class="mini-cover" id="mini-cover">
+                    <img class="mini-cover-image" id="mini-cover-image" alt="Portada del álbum" />
+                  </div>
+                  <div class="panel-meta">
+                    <h2 id="panel-track-title">INTRO</h2>
+                    <p id="panel-track-artist">@dravenn</p>
+                  </div>
+                </div>
+
+                <div class="seek-area">
+                  <div class="seek-topline">
+                    <span id="transport-state">■ DETENIDO</span>
+                    <span id="time-display">00:00</span>
+                  </div>
+                  <input id="seek-bar" type="range" min="0" max="100" value="0" />
+                </div>
+              </div>
+
+              <footer class="control-deck">
+                <div class="transport-cluster">
+                  <button class="chrome-button large game-target" data-action="play" data-game-id="transport-play" type="button">▶</button>
+                  <button class="chrome-button game-target" data-action="pause" data-game-id="transport-pause" type="button">❚❚</button>
+                  <button class="chrome-button game-target" data-action="stop" data-game-id="transport-stop" type="button">■</button>
+                  <button class="chrome-button game-target" data-action="prev" data-game-id="transport-prev" type="button">⏮</button>
+                  <button class="chrome-button game-target" data-action="next" data-game-id="transport-next" type="button">⏭</button>
+                </div>
+                <div class="deck-sliders">
+                  <label class="deck-slider">
+                    <span>VOLUMEN</span>
+                    <input id="volume-bar" type="range" min="0" max="1" step="0.01" value="0.82" />
+                  </label>
+                  <label class="deck-slider">
+                    <span>BRILLO</span>
+                    <input id="glow-bar" type="range" min="0" max="100" value="72" />
+                  </label>
+                </div>
+                <div class="deck-toggle-group">
+                  <button class="tiny-toggle game-target" data-game-id="toggle-shuffle" id="shuffle-button" type="button">⇄ ALEATORIO NO</button>
+                  <button class="tiny-toggle game-target active" data-game-id="toggle-repeat" id="repeat-button" type="button">↺ REPETICIÓN SI</button>
+                </div>
+              </footer>
+            </section>
+
+            <section class="content-window" id="content-window" hidden>
+              <div class="content-window-head">
+                <p id="content-window-kicker">SECCIÓN</p>
+                <h2 id="content-window-title">CRÉDITOS</h2>
+              </div>
+              <div class="content-window-body" id="content-window-body"></div>
+            </section>
+
+            <aside class="playlist-panel" id="playlist-panel">
+              <div class="playlist-topbar">
+                <div class="playlist-select" id="panel-label">▼ REPRODUCTOR</div>
+              </div>
+              <div class="playlist-screen">
+                <div class="playlist-header">
+                  <span id="panel-header-title">▶ LISTA DE PISTAS</span>
+                  <span id="playlist-count">00 PISTAS</span>
+                </div>
+                <ol class="playlist-list" id="playlist"></ol>
+              </div>
+              <div class="playlist-footer">
+                <span><span id="panel-footer-label">TIEMPO:</span> <strong id="panel-footer-value">00:00</strong></span>
+                <span class="game-hud"></span>
+                <span id="current-clock">00:00</span>
+              </div>
+            </aside>
+          </div>
+
+          <audio id="audio-player" preload="metadata"></audio>
+        </section>
+      </section>
+
+      <section class="desktop-window desktop-window-game" id="window-juego" data-window="juego" hidden>
+        <section class="system-window-card">
+          <header class="xp-titlebar">
+            <div class="xp-title-left">
+              <span class="xp-app-icon" aria-hidden="true"></span>
+              <span>DRACOMANIA JUEGO</span>
+            </div>
+            <div class="xp-window-actions">
+              <button class="xp-action game-target" data-window-action="minimize" data-window-target="juego" data-game-id="game-minimize" type="button" aria-label="Minimizar juego">_</button>
+              <button class="xp-action game-target" data-window-action="maximize" data-window-target="juego" data-game-id="game-focus" type="button" aria-label="Expandir juego">□</button>
+              <button class="xp-action xp-close game-target" data-window-action="close" data-window-target="juego" data-game-id="game-close" type="button" aria-label="Cerrar juego">×</button>
+            </div>
+          </header>
+
+          <div class="system-window-body">
+            <iframe
+              class="system-program-frame"
+              id="game-program-frame"
+              title="Juego DRACOMANIA"
+              loading="lazy"
+              data-src="juego.html"
+            ></iframe>
+          </div>
+        </section>
+      </section>
     </section>
   </main>
 
