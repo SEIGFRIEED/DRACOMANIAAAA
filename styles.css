@@ -370,6 +370,7 @@
     .desktop-icons-left {
       top: calc(16px + var(--safe-top));
       left: calc(14px + var(--safe-left));
+      transition: opacity 0.22s ease, transform 0.22s ease;
     }
 
     .desktop-icon {
@@ -470,6 +471,7 @@
       border-top: 2px solid #f4f4f4;
       box-shadow: inset 0 1px 0 #ffffff;
       z-index: 40;
+      transition: transform 0.22s ease, opacity 0.22s ease;
     }
 
     .start-zone {
@@ -2737,13 +2739,399 @@
       max-width: calc(var(--app-width) - var(--safe-left) - var(--safe-right) - 18px);
     }
 
-    body.is-phone-device.is-phone-landscape {
-      --taskbar-height: 34px;
-    }
-
     body.has-phone-open-window .desktop-icons-left {
       opacity: 0;
       pointer-events: none;
+      transform: translateY(-10px);
+    }
+
+    body.has-phone-fullscreen-window .desktop-shell {
+      padding-bottom: 0;
+    }
+
+    body.has-phone-fullscreen-window .desktop-taskbar-shell {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(calc(100% + var(--safe-bottom)));
+    }
+
+    body.has-phone-fullscreen-window .desktop-window-player.is-maximized,
+    body.has-phone-fullscreen-window .desktop-window-game.is-maximized {
+      top: calc(0px + var(--safe-top));
+      left: calc(0px + var(--safe-left));
+      right: calc(0px + var(--safe-right));
+      width: auto;
+      height: calc(var(--app-height) - var(--safe-top) - var(--safe-bottom));
+    }
+
+    body.has-phone-fullscreen-window .wmp-window,
+    body.has-phone-fullscreen-window .system-window-card {
+      box-shadow: none;
+    }
+
+    body.is-phone-device.is-phone-portrait {
+      --taskbar-height: 48px;
+    }
+
+    body.is-phone-device.is-phone-portrait .desktop-shell {
+      padding-bottom: calc(var(--taskbar-height) + var(--safe-bottom) + 2px);
+    }
+
+    body.is-phone-device.is-phone-portrait .desktop-icons-left {
+      top: calc(14px + var(--safe-top));
+      left: calc(12px + var(--safe-left));
+      right: calc(12px + var(--safe-right));
+      width: auto;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      justify-content: stretch;
+      gap: 8px;
+    }
+
+    body.is-phone-device.is-phone-portrait .desktop-icon {
+      width: 100%;
+      max-width: 98px;
+      justify-self: start;
+      gap: 4px;
+      padding: 4px 3px;
+    }
+
+    body.is-phone-device.is-phone-portrait .desktop-icon-label {
+      font-size: 9px;
+      line-height: 1.2;
+    }
+
+    body.is-phone-device.is-phone-portrait .desktop-window-player,
+    body.is-phone-device.is-phone-portrait .desktop-window-game {
+      top: calc(148px + var(--safe-top));
+      left: calc(10px + var(--safe-left));
+      right: calc(10px + var(--safe-right));
+      width: auto;
+      height: calc(var(--app-height) - var(--safe-top) - var(--safe-bottom) - var(--taskbar-height) - 166px);
+      min-height: 430px;
+    }
+
+    body.is-phone-device.is-phone-portrait.has-phone-open-window .desktop-window-player,
+    body.is-phone-device.is-phone-portrait.has-phone-open-window .desktop-window-game {
+      top: calc(10px + var(--safe-top));
+      height: calc(var(--app-height) - var(--safe-top) - var(--safe-bottom) - var(--taskbar-height) - 20px);
+    }
+
+    body.is-phone-device.is-phone-portrait .desktop-window-player.is-maximized,
+    body.is-phone-device.is-phone-portrait .desktop-window-game.is-maximized {
+      top: calc(4px + var(--safe-top));
+      left: calc(4px + var(--safe-left));
+      right: calc(4px + var(--safe-right));
+      width: auto;
+      height: calc(var(--app-height) - var(--safe-top) - var(--safe-bottom) - var(--taskbar-height) - 8px);
+    }
+
+    body.is-phone-device.is-phone-portrait .wmp-window,
+    body.is-phone-device.is-phone-portrait .system-window-card {
+      border-width: 3px;
+      outline-width: 3px;
+      box-shadow:
+        4px 4px 0 var(--border-dk),
+        0 0 0 4px var(--border-dk);
+    }
+
+    body.is-phone-device.is-phone-portrait .xp-titlebar {
+      height: 30px;
+      padding: 0 4px;
+      border-bottom-width: 3px;
+    }
+
+    body.is-phone-device.is-phone-portrait .xp-title-left {
+      gap: 6px;
+      font-size: 7px;
+    }
+
+    body.is-phone-device.is-phone-portrait .xp-app-icon {
+      width: 14px;
+      height: 14px;
+    }
+
+    body.is-phone-device.is-phone-portrait .xp-window-actions {
+      gap: 3px;
+    }
+
+    body.is-phone-device.is-phone-portrait .xp-action {
+      width: 20px;
+      height: 20px;
+      font-size: 9px;
+      box-shadow: 1px 1px 0 var(--border-dk);
+    }
+
+    body.is-phone-device.is-phone-portrait .player-frame {
+      grid-template-columns: 1fr;
+      min-height: 0;
+    }
+
+    body.is-phone-device.is-phone-portrait .left-nav {
+      flex-direction: row;
+      flex-wrap: wrap;
+      border-right: none;
+      border-bottom: 2px solid var(--red3);
+      padding: 8px;
+      gap: 4px;
+    }
+
+    body.is-phone-device.is-phone-portrait .nav-item {
+      flex: 1 1 calc(50% - 4px);
+      min-width: 0;
+      padding: 7px 8px;
+      font-size: 6px;
+      line-height: 1.45;
+      border-right: none !important;
+      text-align: center;
+    }
+
+    body.is-phone-device.is-phone-portrait .main-stage {
+      min-height: 0;
+    }
+
+    body.is-phone-device.is-phone-portrait .visual-card {
+      min-height: 0;
+    }
+
+    body.is-phone-device.is-phone-portrait .track-head {
+      padding: 10px 12px 9px;
+    }
+
+    body.is-phone-device.is-phone-portrait .track-head p {
+      font-size: 6px;
+    }
+
+    body.is-phone-device.is-phone-portrait .track-head h1 {
+      margin-top: 6px;
+      font-size: clamp(9px, 3vw, 13px);
+      line-height: 1.45;
+    }
+
+    body.is-phone-device.is-phone-portrait .desktop-window-player .visual-stage,
+    body.is-phone-device.is-phone-portrait .visual-stage {
+      min-height: clamp(168px, 23vh, 220px);
+    }
+
+    body.is-phone-device.is-phone-portrait .visual-wordmark span {
+      font-size: clamp(18px, 6vw, 26px);
+      letter-spacing: clamp(0.14rem, 1vw, 0.28rem);
+    }
+
+    body.is-phone-device.is-phone-portrait .spectrum-line {
+      left: 8px;
+      right: 8px;
+      height: 72px;
+      gap: 2px;
+    }
+
+    body.is-phone-device.is-phone-portrait .now-playing-panel {
+      grid-template-columns: 64px minmax(0, 1fr);
+      gap: 10px;
+      padding: 10px 12px;
+    }
+
+    body.is-phone-device.is-phone-portrait .mini-cover {
+      width: 64px;
+      height: 64px;
+      border-width: 2px;
+      box-shadow: 2px 2px 0 var(--border-dk);
+    }
+
+    body.is-phone-device.is-phone-portrait .panel-meta h2 {
+      font-size: 9px;
+      line-height: 1.45;
+    }
+
+    body.is-phone-device.is-phone-portrait #panel-track-artist {
+      margin-top: 4px;
+      font-size: 6px;
+      line-height: 1.55;
+    }
+
+    body.is-phone-device.is-phone-portrait .seek-area {
+      padding: 8px 12px 10px;
+    }
+
+    body.is-phone-device.is-phone-portrait .seek-topline {
+      margin-bottom: 5px;
+      font-size: 6px;
+    }
+
+    body.is-phone-device.is-phone-portrait input[type="range"] {
+      height: 9px;
+    }
+
+    body.is-phone-device.is-phone-portrait input[type="range"]::-webkit-slider-thumb {
+      width: 11px;
+      height: 19px;
+    }
+
+    body.is-phone-device.is-phone-portrait input[type="range"]::-moz-range-thumb {
+      width: 11px;
+      height: 19px;
+    }
+
+    body.is-phone-device.is-phone-portrait .control-deck {
+      grid-template-columns: 1fr;
+      gap: 10px;
+      padding: 10px 12px 12px;
+    }
+
+    body.is-phone-device.is-phone-portrait .transport-cluster {
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    body.is-phone-device.is-phone-portrait .chrome-button {
+      width: 34px;
+      height: 34px;
+      font-size: 11px;
+      box-shadow: 2px 2px 0 var(--border-dk);
+    }
+
+    body.is-phone-device.is-phone-portrait .chrome-button.large {
+      width: 50px;
+      height: 50px;
+      font-size: 16px;
+      box-shadow: 3px 3px 0 var(--border-dk);
+    }
+
+    body.is-phone-device.is-phone-portrait .deck-sliders {
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    body.is-phone-device.is-phone-portrait .deck-slider {
+      gap: 4px;
+      font-size: 6px;
+    }
+
+    body.is-phone-device.is-phone-portrait .deck-toggle-group {
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    body.is-phone-device.is-phone-portrait .tiny-toggle {
+      flex: 1 1 140px;
+      min-width: 0;
+      padding: 6px 8px;
+      font-size: 6px;
+      box-shadow: 2px 2px 0 var(--border-dk);
+    }
+
+    body.is-phone-device.is-phone-portrait .playlist-panel {
+      grid-column: 1 / -1;
+      min-height: 0;
+      border-left: none;
+      border-top: 2px solid var(--red3);
+    }
+
+    body.is-phone-device.is-phone-portrait .playlist-topbar {
+      padding: 7px;
+    }
+
+    body.is-phone-device.is-phone-portrait .playlist-select {
+      padding: 6px 7px;
+      font-size: 6px;
+    }
+
+    body.is-phone-device.is-phone-portrait .playlist-header {
+      padding: 7px 8px;
+      font-size: 6px;
+    }
+
+    body.is-phone-device.is-phone-portrait .playlist-list {
+      padding: 5px;
+    }
+
+    body.is-phone-device.is-phone-portrait .playlist-item button {
+      padding: 6px;
+      font-size: 6px;
+      line-height: 1.5;
+    }
+
+    body.is-phone-device.is-phone-portrait .playlist-duration {
+      min-width: 38px;
+    }
+
+    body.is-phone-device.is-phone-portrait .playlist-footer {
+      gap: 6px;
+      padding: 7px 8px;
+      font-size: 6px;
+      flex-wrap: wrap;
+    }
+
+    body.is-phone-device.is-phone-portrait .content-window {
+      grid-column: 1 / -1;
+      min-height: 0;
+      border-left: none;
+      border-top: 2px solid var(--red3);
+    }
+
+    body.is-phone-device.is-phone-portrait .content-window-head {
+      padding: 10px 12px 9px;
+    }
+
+    body.is-phone-device.is-phone-portrait .content-window-head p,
+    body.is-phone-device.is-phone-portrait .content-card-title,
+    body.is-phone-device.is-phone-portrait .content-card-text {
+      font-size: 6px;
+    }
+
+    body.is-phone-device.is-phone-portrait .content-window-body {
+      padding: 10px;
+    }
+
+    body.is-phone-device.is-phone-portrait .desktop-taskbar-shell {
+      min-height: var(--taskbar-height);
+      gap: 3px;
+      padding:
+        3px
+        calc(4px + var(--safe-right))
+        calc(3px + var(--safe-bottom))
+        calc(4px + var(--safe-left));
+    }
+
+    body.is-phone-device.is-phone-portrait .start-button {
+      min-width: 82px;
+      height: 34px;
+      gap: 6px;
+      padding: 0 10px 0 7px;
+      font-size: 11px;
+    }
+
+    body.is-phone-device.is-phone-portrait .start-button-logo {
+      width: 14px;
+      height: 14px;
+    }
+
+    body.is-phone-device.is-phone-portrait .taskbar-program {
+      min-width: 108px;
+      padding: 7px 8px;
+      font-size: 10px;
+    }
+
+    body.is-phone-device.is-phone-portrait .desktop-tray {
+      gap: 5px;
+      padding: 0 6px;
+    }
+
+    body.is-phone-device.is-phone-portrait .desktop-clock {
+      min-width: 48px;
+      font-size: 10px;
+    }
+
+    body.is-phone-device.is-phone-portrait .start-menu {
+      bottom: calc(var(--taskbar-height) - 5px + var(--safe-bottom));
+      width: min(232px, calc(var(--app-width) - var(--safe-left) - var(--safe-right) - 10px));
+      min-height: 220px;
+      max-height: calc(var(--app-height) - var(--safe-top) - var(--taskbar-height) - 10px);
+    }
+
+    body.is-phone-device.is-phone-landscape {
+      --taskbar-height: 34px;
     }
 
     body.is-phone-device.is-phone-landscape .desktop-shell {
@@ -3127,4 +3515,26 @@
       body.is-phone-device.is-phone-landscape .desktop-window-game {
         height: calc(var(--app-height) - var(--safe-top) - var(--safe-bottom) - var(--taskbar-height) - 10px);
       }
+    }
+
+    body.is-phone-device.has-phone-fullscreen-window .desktop-window-player.is-maximized,
+    body.is-phone-device.has-phone-fullscreen-window .desktop-window-game.is-maximized {
+      top: calc(0px + var(--safe-top));
+      left: calc(0px + var(--safe-left));
+      right: calc(0px + var(--safe-right));
+      width: auto;
+      height: calc(var(--app-height) - var(--safe-top) - var(--safe-bottom));
+    }
+
+    body.is-phone-device.has-phone-fullscreen-window .desktop-shell {
+      padding-bottom: 0;
+    }
+
+    body.is-phone-device.has-phone-fullscreen-window .desktop-taskbar-shell {
+      display: none;
+    }
+
+    body.is-phone-device.has-phone-fullscreen-window .wmp-window,
+    body.is-phone-device.has-phone-fullscreen-window .system-window-card {
+      box-shadow: none;
     }

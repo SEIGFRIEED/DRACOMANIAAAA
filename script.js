@@ -245,15 +245,21 @@ function syncDeviceClasses() {
   const phoneDevice = isPhoneDevice();
   const portraitOrientation = isPortraitOrientation();
   const hasOpenProgram = Object.values(state.windows).some(windowState => windowState.open && !windowState.minimized);
+  const hasFullscreenProgram = Object.values(state.windows).some(windowState => (
+    windowState.open
+    && !windowState.minimized
+    && windowState.maximized
+  ));
 
   document.body.classList.toggle("is-phone-device", phoneDevice);
   document.body.classList.toggle("is-phone-portrait", phoneDevice && portraitOrientation);
   document.body.classList.toggle("is-phone-landscape", phoneDevice && !portraitOrientation);
-  document.body.classList.toggle("has-phone-open-window", phoneDevice && !portraitOrientation && hasOpenProgram);
+  document.body.classList.toggle("has-phone-open-window", phoneDevice && hasOpenProgram);
+  document.body.classList.toggle("has-phone-fullscreen-window", phoneDevice && hasFullscreenProgram);
 }
 
 function shouldPauseForPhoneOrientation() {
-  return isPhoneDevice() && isPortraitOrientation();
+  return false;
 }
 
 function isPhoneDevice() {
@@ -274,25 +280,18 @@ function isPortraitOrientation() {
 }
 
 function updateOrientationGate() {
-  const shouldShowGate = isPhoneDevice() && isPortraitOrientation() && (!state.bootStarted || state.bootComplete);
-
   if (el.orientationGate) {
-    el.orientationGate.hidden = !shouldShowGate;
+    el.orientationGate.hidden = true;
   }
 
-  document.body.classList.toggle("orientation-gate-visible", shouldShowGate);
+  document.body.classList.remove("orientation-gate-visible");
 
   if (!state.bootStarted) {
-    el.bootSequence.hidden = shouldShowGate;
+    el.bootSequence.hidden = false;
   }
 
   if (state.bootComplete) {
     el.appShell.hidden = false;
-    return;
-  }
-
-  if (shouldShowGate) {
-    el.appShell.hidden = true;
   }
 }
 
@@ -488,8 +487,8 @@ function openProgram(program) {
     el.gameProgramFrame.src = resolveAssetPath(el.gameProgramFrame.dataset.src || albumConfig.game.htmlSrc);
   }
 
-  if (isPhoneDevice() && !isPortraitOrientation()) {
-    windowState.maximized = true;
+  if (isPhoneDevice()) {
+    windowState.maximized = !isPortraitOrientation();
   }
 
   windowState.open = true;
