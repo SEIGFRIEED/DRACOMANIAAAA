@@ -150,6 +150,8 @@ const el = {
 };
 
 function init() {
+  syncViewportMetrics();
+  syncDeviceClasses();
   el.artistName.textContent = albumConfig.artist;
   el.audio.volume = Number(el.volumeBar.value);
   applyPlayerVisuals();
@@ -216,11 +218,38 @@ function revealDesktop() {
 }
 
 function handleViewportChange() {
+  syncViewportMetrics();
+  syncDeviceClasses();
   updateOrientationGate();
 
   if (!state.bootStarted && !state.bootComplete && !shouldPauseForPhoneOrientation()) {
     void launchBootSequence();
   }
+}
+
+function syncViewportMetrics() {
+  const viewport = window.visualViewport;
+  const width = Math.round(viewport?.width || window.innerWidth || document.documentElement.clientWidth || 0);
+  const height = Math.round(viewport?.height || window.innerHeight || document.documentElement.clientHeight || 0);
+
+  if (width > 0) {
+    document.documentElement.style.setProperty("--app-width", `${width}px`);
+  }
+
+  if (height > 0) {
+    document.documentElement.style.setProperty("--app-height", `${height}px`);
+  }
+}
+
+function syncDeviceClasses() {
+  const phoneDevice = isPhoneDevice();
+  const portraitOrientation = isPortraitOrientation();
+  const hasOpenProgram = Object.values(state.windows).some(windowState => windowState.open && !windowState.minimized);
+
+  document.body.classList.toggle("is-phone-device", phoneDevice);
+  document.body.classList.toggle("is-phone-portrait", phoneDevice && portraitOrientation);
+  document.body.classList.toggle("is-phone-landscape", phoneDevice && !portraitOrientation);
+  document.body.classList.toggle("has-phone-open-window", phoneDevice && !portraitOrientation && hasOpenProgram);
 }
 
 function shouldPauseForPhoneOrientation() {
@@ -232,8 +261,12 @@ function isPhoneDevice() {
     ?? /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(navigator.userAgent);
   const shortSide = Math.min(window.innerWidth, window.innerHeight);
   const longSide = Math.max(window.innerWidth, window.innerHeight);
+  const touchCapable = navigator.maxTouchPoints > 0
+    || window.matchMedia("(pointer: coarse)").matches
+    || window.matchMedia("(hover: none)").matches;
+  const compactLandscapeViewport = window.innerHeight <= 540 && window.innerWidth <= 950;
 
-  return Boolean(mobileUserAgent && shortSide <= 540 && longSide <= 1024);
+  return Boolean(shortSide <= 540 && longSide <= 1024 && (mobileUserAgent || touchCapable || compactLandscapeViewport));
 }
 
 function isPortraitOrientation() {
@@ -413,6 +446,11 @@ function bindEvents() {
   window.addEventListener("resize", handleViewportChange);
   window.addEventListener("orientationchange", handleViewportChange);
 
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", handleViewportChange);
+    window.visualViewport.addEventListener("scroll", handleViewportChange);
+  }
+
   bindGameNavigation();
 }
 
@@ -448,6 +486,10 @@ function openProgram(program) {
 
   if (program === "juego" && el.gameProgramFrame && !el.gameProgramFrame.src) {
     el.gameProgramFrame.src = resolveAssetPath(el.gameProgramFrame.dataset.src || albumConfig.game.htmlSrc);
+  }
+
+  if (isPhoneDevice() && !isPortraitOrientation()) {
+    windowState.maximized = true;
   }
 
   windowState.open = true;
@@ -580,6 +622,8 @@ function renderTaskbarPrograms() {
     button.hidden = !isOpen;
     button.classList.toggle("is-focused", Boolean(isOpen && focusedProgram === program));
   });
+
+  syncDeviceClasses();
 }
 
 function getFocusedProgram() {

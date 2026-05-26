@@ -23,6 +23,13 @@
       --border-md: #200606;   /* NES border mid */
 
       --glow-strength: 0.72;
+      --app-height: 100svh;
+      --app-width: 100vw;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-right: env(safe-area-inset-right, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --safe-left: env(safe-area-inset-left, 0px);
+      --taskbar-height: 40px;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -31,10 +38,19 @@
       display: none !important;
     }
 
-    html { color-scheme: dark; image-rendering: pixelated; }
+    html {
+      height: 100%;
+      color-scheme: dark;
+      image-rendering: pixelated;
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+      background: #000000;
+      overscroll-behavior: none;
+    }
 
     body {
-      min-height: 100svh;
+      min-height: var(--app-height);
+      height: var(--app-height);
       font-family: 'Press Start 2P', monospace;
       font-size: 10px;
       line-height: 1.6;
@@ -43,9 +59,16 @@
         radial-gradient(ellipse at 50% 0%,   rgba(120,0,8,0.14) 0%, transparent 55%),
         radial-gradient(ellipse at 50% 100%, rgba(80,0,4,0.1)   0%, transparent 55%),
         #000000;
+      overflow: hidden;
+      overscroll-behavior: none;
+      touch-action: manipulation;
     }
 
-    button, input { font-family: inherit; }
+    button, input {
+      font-family: inherit;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
 
     .game-target {
       position: relative;
@@ -82,7 +105,11 @@
       z-index: 110;
       display: grid;
       place-items: center;
-      padding: 24px;
+      padding:
+        calc(24px + var(--safe-top))
+        calc(24px + var(--safe-right))
+        calc(24px + var(--safe-bottom))
+        calc(24px + var(--safe-left));
       background:
         radial-gradient(circle at 50% 18%, rgba(50, 80, 255, 0.2), transparent 34%),
         linear-gradient(180deg, #040404 0%, #000000 100%);
@@ -300,15 +327,17 @@
        APP SHELL
     ════════════════════════════════════════════ */
     .app-shell {
-      min-height: 100svh;
+      min-height: var(--app-height);
+      height: var(--app-height);
       position: relative;
       overflow: hidden;
     }
 
     .desktop-shell {
       position: relative;
-      min-height: 100svh;
-      padding-bottom: 40px;
+      min-height: var(--app-height);
+      height: var(--app-height);
+      padding-bottom: calc(var(--taskbar-height) + var(--safe-bottom));
       overflow: hidden;
       background: #008080;
       font-family: Tahoma, "Segoe UI", sans-serif;
@@ -339,8 +368,8 @@
     }
 
     .desktop-icons-left {
-      top: 16px;
-      left: 14px;
+      top: calc(16px + var(--safe-top));
+      left: calc(14px + var(--safe-left));
     }
 
     .desktop-icon {
@@ -428,11 +457,15 @@
       left: 0;
       right: 0;
       bottom: 0;
-      height: 40px;
+      min-height: var(--taskbar-height);
       display: flex;
       align-items: stretch;
       gap: 4px;
-      padding: 3px 4px;
+      padding:
+        3px
+        calc(4px + var(--safe-right))
+        calc(3px + var(--safe-bottom))
+        calc(4px + var(--safe-left));
       background: #c0c0c0;
       border-top: 2px solid #f4f4f4;
       box-shadow: inset 0 1px 0 #ffffff;
@@ -489,9 +522,10 @@
     .start-menu {
       position: absolute;
       left: 0;
-      bottom: 35px;
+      bottom: calc(var(--taskbar-height) - 5px + var(--safe-bottom));
       width: 246px;
       min-height: 256px;
+      max-height: calc(var(--app-height) - var(--safe-top) - var(--taskbar-height) - 10px);
       display: grid;
       grid-template-columns: 30px minmax(0, 1fr);
       background: #c0c0c0;
@@ -502,6 +536,7 @@
         inset 1px 1px 0 #dfdfdf,
         inset -1px -1px 0 #808080;
       overflow: hidden;
+      z-index: 70;
     }
 
     .start-menu-strip {
@@ -705,7 +740,7 @@
       top: 36px;
       left: 108px;
       width: min(1160px, calc(100vw - 228px));
-      height: min(800px, calc(100vh - 108px));
+      height: min(800px, calc(var(--app-height) - 108px - var(--safe-bottom)));
     }
 
     .desktop-window-player.is-maximized {
@@ -713,14 +748,14 @@
       left: 8px;
       right: auto;
       width: calc(100vw - 16px);
-      height: calc(100vh - 56px);
+      height: calc(var(--app-height) - 56px - var(--safe-bottom));
     }
 
     .desktop-window-game {
       top: 90px;
       right: 118px;
       width: min(760px, calc(100vw - 286px));
-      height: min(560px, calc(100vh - 170px));
+      height: min(560px, calc(var(--app-height) - 170px - var(--safe-bottom)));
     }
 
     .desktop-window-game.is-maximized {
@@ -728,7 +763,7 @@
       left: 8px;
       right: auto;
       width: calc(100vw - 16px);
-      height: calc(100vh - 56px);
+      height: calc(var(--app-height) - 56px - var(--safe-bottom));
     }
 
     .desktop-window-player .wmp-window,
@@ -758,6 +793,7 @@
       min-height: 0;
       background: #000000;
       border-top: 2px solid var(--red3);
+      -webkit-overflow-scrolling: touch;
     }
 
     .system-program-frame {
@@ -1004,6 +1040,7 @@
     .content-window-body {
       padding: 14px;
       overflow: auto;
+      -webkit-overflow-scrolling: touch;
       background:
         radial-gradient(circle at top right, rgba(140,0,6,0.14), transparent 30%),
         linear-gradient(180deg, rgba(255,255,255,0.02), transparent 28%),
@@ -1989,6 +2026,7 @@
       padding: 6px;
       list-style: none;
       overflow: auto;
+      -webkit-overflow-scrolling: touch;
       display: grid;
       gap: 2px;
       align-content: start;
@@ -2223,13 +2261,13 @@
     ════════════════════════════════════════════ */
     @media (max-width: 1100px) {
       .desktop-icons-left {
-        left: 10px;
+        left: calc(10px + var(--safe-left));
       }
 
       .desktop-window-player {
         left: 96px;
         width: calc(100vw - 192px);
-        height: min(760px, calc(100vh - 108px));
+        height: min(760px, calc(var(--app-height) - 108px - var(--safe-bottom)));
       }
 
       .desktop-window-game {
@@ -2261,16 +2299,16 @@
 
       .desktop-window-player {
         top: 250px;
-        height: calc(100vh - 302px);
+        height: calc(var(--app-height) - 302px - var(--safe-bottom));
       }
 
       .desktop-window-game {
         top: 268px;
-        height: calc(100vh - 320px);
+        height: calc(var(--app-height) - 320px - var(--safe-bottom));
       }
 
       .desktop-taskbar-shell {
-        height: 42px;
+        min-height: 42px;
         gap: 3px;
       }
 
@@ -2343,14 +2381,14 @@
       }
       .desktop-window-player {
         top: 286px;
-        height: calc(100vh - 336px);
+        height: calc(var(--app-height) - 336px - var(--safe-bottom));
       }
       .desktop-window-game {
         top: 304px;
-        height: calc(100vh - 354px);
+        height: calc(var(--app-height) - 354px - var(--safe-bottom));
       }
       .desktop-taskbar-shell {
-        height: 44px;
+        min-height: 44px;
         padding: 3px;
       }
       .start-button {
@@ -2403,6 +2441,10 @@
     }
 
     @media (max-width: 950px) and (max-height: 540px) and (orientation: landscape) {
+      body {
+        --taskbar-height: 34px;
+      }
+
       .orientation-card {
         width: min(88vw, 560px);
         gap: 14px;
@@ -2419,48 +2461,670 @@
       }
 
       .desktop-icons-left {
-        top: 10px;
-        left: 10px;
+        top: calc(6px + var(--safe-top));
+        left: calc(6px + var(--safe-left));
         right: auto;
         grid-template-columns: 1fr;
-        gap: 8px;
+        gap: 4px;
+        width: 72px;
       }
 
       .desktop-icon {
-        width: 88px;
+        width: 72px;
+        gap: 3px;
+        padding: 3px 2px;
       }
 
       .desktop-window-player,
       .desktop-window-game {
-        top: 10px;
-        left: 106px;
-        right: 10px;
+        top: calc(4px + var(--safe-top));
+        left: calc(4px + var(--safe-left));
+        right: calc(4px + var(--safe-right));
         width: auto;
-        height: calc(100vh - 62px);
-      }
-
-      .desktop-window-game {
-        top: 24px;
-        left: 126px;
-        height: calc(100vh - 76px);
+        height: calc(var(--app-height) - var(--safe-top) - var(--safe-bottom) - var(--taskbar-height) - 8px);
       }
 
       .desktop-window-player.is-maximized,
       .desktop-window-game.is-maximized {
-        top: 8px;
-        left: 8px;
-        right: auto;
-        width: calc(100vw - 16px);
-        height: calc(100vh - 58px);
+        top: calc(4px + var(--safe-top));
+        left: calc(4px + var(--safe-left));
+        right: calc(4px + var(--safe-right));
+        width: auto;
+        height: calc(var(--app-height) - var(--safe-top) - var(--safe-bottom) - var(--taskbar-height) - 8px);
       }
 
       .desktop-taskbar-shell {
-        height: 40px;
-        padding: 3px;
+        min-height: var(--taskbar-height);
+        gap: 3px;
+        padding:
+          2px
+          calc(4px + var(--safe-right))
+          calc(2px + var(--safe-bottom))
+          calc(4px + var(--safe-left));
       }
 
       .start-menu {
-        width: min(220px, calc(100vw - 10px));
-        min-height: 216px;
+        bottom: calc(var(--taskbar-height) - 5px + var(--safe-bottom));
+        width: min(216px, calc(var(--app-width) - var(--safe-left) - var(--safe-right) - 8px));
+        min-height: 180px;
+        max-height: calc(var(--app-height) - var(--safe-top) - var(--taskbar-height) - 6px);
+      }
+
+      .player-frame {
+        grid-template-columns: 78px minmax(0, 1fr) 182px;
+      }
+
+      .main-stage {
+        min-height: 0;
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .visual-card {
+        min-height: 0;
+        grid-template-rows: auto minmax(0, 1fr) auto auto;
+      }
+
+      .playlist-panel {
+        grid-column: 3;
+        grid-row: 1;
+        min-height: 0;
+        border-top: none;
+        border-left: 2px solid var(--red3);
+      }
+
+      .playlist-screen {
+        min-height: 0;
+      }
+
+      .content-window {
+        grid-column: 2 / 4;
+        grid-row: 1;
+        min-height: 0;
+        border-top: none;
+        border-left: 2px solid var(--red3);
+      }
+
+      .track-head {
+        padding: 8px 10px 7px;
+      }
+
+      .track-head p {
+        font-size: 6px;
+      }
+
+      .track-head h1 {
+        margin-top: 6px;
+        font-size: clamp(8px, 1vw, 12px);
+      }
+
+      .desktop-window-player .visual-stage,
+      .visual-stage {
+        min-height: 132px;
+      }
+
+      .visual-wordmark span {
+        font-size: clamp(16px, 2vw, 22px);
+        letter-spacing: clamp(0.12rem, 0.45vw, 0.26rem);
+      }
+
+      .spectrum-line {
+        left: 8px;
+        right: 8px;
+        height: 72px;
+        gap: 2px;
+      }
+
+      .now-playing-panel {
+        grid-template-columns: 52px minmax(0, 1fr);
+        gap: 8px;
+        padding: 8px 10px;
+      }
+
+      .mini-cover {
+        width: 52px;
+        height: 52px;
+        border-width: 2px;
+        box-shadow: 2px 2px 0 var(--border-dk);
+      }
+
+      .panel-meta h2 {
+        font-size: 8px;
+        line-height: 1.4;
+      }
+
+      #panel-track-artist {
+        margin-top: 4px;
+        font-size: 5px;
+        line-height: 1.5;
+      }
+
+      .seek-area {
+        padding: 6px 10px 8px;
+      }
+
+      .seek-topline {
+        margin-bottom: 4px;
+        font-size: 6px;
+      }
+
+      input[type="range"] {
+        height: 8px;
+      }
+
+      input[type="range"]::-webkit-slider-thumb {
+        width: 10px;
+        height: 18px;
+      }
+
+      input[type="range"]::-moz-range-thumb {
+        width: 10px;
+        height: 18px;
+      }
+
+      .control-deck {
+        gap: 8px;
+        padding: 8px 10px 10px;
+      }
+
+      .transport-cluster {
+        gap: 4px;
+        flex-wrap: nowrap;
+      }
+
+      .chrome-button {
+        width: 28px;
+        height: 28px;
+        font-size: 10px;
+        box-shadow: 2px 2px 0 var(--border-dk);
+      }
+
+      .chrome-button.large {
+        width: 40px;
+        height: 40px;
+        font-size: 14px;
+        box-shadow: 3px 3px 0 var(--border-dk);
+      }
+
+      .deck-sliders {
+        gap: 10px;
+      }
+
+      .deck-slider {
+        gap: 4px;
+        font-size: 6px;
+      }
+
+      .deck-toggle-group {
+        gap: 4px;
+      }
+
+      .tiny-toggle {
+        min-width: 84px;
+        padding: 5px 6px;
+        font-size: 5.5px;
+        box-shadow: 2px 2px 0 var(--border-dk);
+      }
+
+      .playlist-topbar {
+        padding: 6px;
+      }
+
+      .playlist-select {
+        padding: 5px 6px;
+        font-size: 5.5px;
+      }
+
+      .playlist-header {
+        padding: 6px 8px;
+        font-size: 5.5px;
+      }
+
+      .playlist-list {
+        padding: 4px;
+      }
+
+      .playlist-item button {
+        padding: 4px 5px;
+        font-size: 5.5px;
+        line-height: 1.45;
+      }
+
+      .playlist-duration {
+        min-width: 34px;
+      }
+
+      .playlist-status {
+        margin-top: 2px;
+        font-size: 4.75px;
+      }
+
+      .playlist-footer {
+        gap: 6px;
+        padding: 6px 8px;
+        font-size: 5.5px;
+      }
+
+      .content-window-head {
+        padding: 10px 12px 9px;
+      }
+
+      .content-window-head p,
+      .content-card-title,
+      .content-card-text {
+        font-size: 6px;
+      }
+
+      .content-window-body {
+        padding: 10px;
+      }
+    }
+
+    body.is-phone-device {
+      --taskbar-height: 42px;
+    }
+
+    body.is-phone-device .desktop-taskbar-shell {
+      padding-bottom: calc(3px + var(--safe-bottom));
+    }
+
+    body.is-phone-device .start-menu {
+      left: max(0px, var(--safe-left));
+      width: min(246px, calc(var(--app-width) - var(--safe-left) - var(--safe-right) - 8px));
+    }
+
+    body.is-phone-device.is-phone-portrait .orientation-card {
+      max-width: calc(var(--app-width) - var(--safe-left) - var(--safe-right) - 18px);
+    }
+
+    body.is-phone-device.is-phone-landscape {
+      --taskbar-height: 34px;
+    }
+
+    body.has-phone-open-window .desktop-icons-left {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    body.is-phone-device.is-phone-landscape .desktop-shell {
+      padding-bottom: calc(var(--taskbar-height) + var(--safe-bottom) + 2px);
+    }
+
+    body.is-phone-device.is-phone-landscape .desktop-icons-left {
+      top: calc(6px + var(--safe-top));
+      left: calc(6px + var(--safe-left));
+      right: auto;
+      grid-template-columns: 1fr;
+      gap: 4px;
+      width: 72px;
+    }
+
+    body.is-phone-device.is-phone-landscape .desktop-icon {
+      width: 72px;
+      gap: 3px;
+      padding: 3px 2px;
+    }
+
+    body.is-phone-device.is-phone-landscape .desktop-icon-art.icon-player,
+    body.is-phone-device.is-phone-landscape .desktop-icon-art.icon-game {
+      width: 44px;
+      height: 44px;
+    }
+
+    body.is-phone-device.is-phone-landscape .desktop-icon-art.icon-trash {
+      width: 38px;
+      height: 38px;
+      background-size: 38px 38px;
+    }
+
+    body.is-phone-device.is-phone-landscape .desktop-icon-label {
+      font-size: 8px;
+      line-height: 1.15;
+    }
+
+    body.is-phone-device.is-phone-landscape .desktop-window-player,
+    body.is-phone-device.is-phone-landscape .desktop-window-game {
+      top: calc(4px + var(--safe-top));
+      left: calc(4px + var(--safe-left));
+      right: calc(4px + var(--safe-right));
+      width: auto;
+      height: calc(var(--app-height) - var(--safe-top) - var(--safe-bottom) - var(--taskbar-height) - 8px);
+    }
+
+    body.is-phone-device.is-phone-landscape .desktop-window-player.is-maximized,
+    body.is-phone-device.is-phone-landscape .desktop-window-game.is-maximized {
+      top: calc(4px + var(--safe-top));
+      left: calc(4px + var(--safe-left));
+      right: calc(4px + var(--safe-right));
+      width: auto;
+      height: calc(var(--app-height) - var(--safe-top) - var(--safe-bottom) - var(--taskbar-height) - 8px);
+    }
+
+    body.is-phone-device.is-phone-landscape .wmp-window,
+    body.is-phone-device.is-phone-landscape .system-window-card {
+      border-width: 3px;
+      outline-width: 3px;
+      box-shadow:
+        4px 4px 0 var(--border-dk),
+        0 0 0 4px var(--border-dk);
+    }
+
+    body.is-phone-device.is-phone-landscape .xp-titlebar {
+      height: 28px;
+      padding: 0 4px;
+      border-bottom-width: 3px;
+    }
+
+    body.is-phone-device.is-phone-landscape .xp-title-left {
+      gap: 6px;
+      font-size: 7px;
+    }
+
+    body.is-phone-device.is-phone-landscape .xp-app-icon {
+      width: 14px;
+      height: 14px;
+    }
+
+    body.is-phone-device.is-phone-landscape .xp-window-actions {
+      gap: 3px;
+    }
+
+    body.is-phone-device.is-phone-landscape .xp-action {
+      width: 19px;
+      height: 19px;
+      font-size: 9px;
+      box-shadow: 1px 1px 0 var(--border-dk);
+    }
+
+    body.is-phone-device.is-phone-landscape .player-frame {
+      grid-template-columns: 78px minmax(0, 1fr) 182px;
+    }
+
+    body.is-phone-device.is-phone-landscape .main-stage {
+      min-height: 0;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    body.is-phone-device.is-phone-landscape .visual-card {
+      min-height: 0;
+      grid-template-rows: auto minmax(0, 1fr) auto auto;
+    }
+
+    body.is-phone-device.is-phone-landscape .playlist-panel {
+      grid-column: 3;
+      grid-row: 1;
+      min-height: 0;
+      border-top: none;
+      border-left: 2px solid var(--red3);
+    }
+
+    body.is-phone-device.is-phone-landscape .playlist-screen {
+      min-height: 0;
+    }
+
+    body.is-phone-device.is-phone-landscape .content-window {
+      grid-column: 2 / 4;
+      grid-row: 1;
+      min-height: 0;
+      border-top: none;
+      border-left: 2px solid var(--red3);
+    }
+
+    body.is-phone-device.is-phone-landscape .left-nav {
+      gap: 1px;
+      padding: 6px 0 4px;
+    }
+
+    body.is-phone-device.is-phone-landscape .nav-item {
+      padding: 7px 6px 7px 5px;
+      font-size: 5.5px;
+      line-height: 1.3;
+    }
+
+    body.is-phone-device.is-phone-landscape .nav-item.active {
+      border-right-width: 2px;
+    }
+
+    body.is-phone-device.is-phone-landscape .track-head {
+      padding: 8px 10px 7px;
+    }
+
+    body.is-phone-device.is-phone-landscape .track-head p {
+      font-size: 6px;
+    }
+
+    body.is-phone-device.is-phone-landscape .track-head h1 {
+      margin-top: 6px;
+      font-size: clamp(8px, 1vw, 12px);
+    }
+
+    body.is-phone-device.is-phone-landscape .desktop-window-player .visual-stage,
+    body.is-phone-device.is-phone-landscape .visual-stage {
+      min-height: 132px;
+    }
+
+    body.is-phone-device.is-phone-landscape .visual-wordmark span {
+      font-size: clamp(16px, 2vw, 22px);
+      letter-spacing: clamp(0.12rem, 0.45vw, 0.26rem);
+    }
+
+    body.is-phone-device.is-phone-landscape .spectrum-line {
+      left: 8px;
+      right: 8px;
+      height: 72px;
+      gap: 2px;
+    }
+
+    body.is-phone-device.is-phone-landscape .now-playing-panel {
+      grid-template-columns: 52px minmax(0, 1fr);
+      gap: 8px;
+      padding: 8px 10px;
+    }
+
+    body.is-phone-device.is-phone-landscape .mini-cover {
+      width: 52px;
+      height: 52px;
+      border-width: 2px;
+      box-shadow: 2px 2px 0 var(--border-dk);
+    }
+
+    body.is-phone-device.is-phone-landscape .panel-meta h2 {
+      font-size: 8px;
+      line-height: 1.4;
+    }
+
+    body.is-phone-device.is-phone-landscape #panel-track-artist {
+      margin-top: 4px;
+      font-size: 5px;
+      line-height: 1.5;
+    }
+
+    body.is-phone-device.is-phone-landscape .seek-area {
+      padding: 6px 10px 8px;
+    }
+
+    body.is-phone-device.is-phone-landscape .seek-topline {
+      margin-bottom: 4px;
+      font-size: 6px;
+    }
+
+    body.is-phone-device.is-phone-landscape input[type="range"] {
+      height: 8px;
+    }
+
+    body.is-phone-device.is-phone-landscape input[type="range"]::-webkit-slider-thumb {
+      width: 10px;
+      height: 18px;
+    }
+
+    body.is-phone-device.is-phone-landscape input[type="range"]::-moz-range-thumb {
+      width: 10px;
+      height: 18px;
+    }
+
+    body.is-phone-device.is-phone-landscape .control-deck {
+      gap: 8px;
+      padding: 8px 10px 10px;
+    }
+
+    body.is-phone-device.is-phone-landscape .transport-cluster {
+      gap: 4px;
+      flex-wrap: nowrap;
+    }
+
+    body.is-phone-device.is-phone-landscape .chrome-button {
+      width: 28px;
+      height: 28px;
+      font-size: 10px;
+      box-shadow: 2px 2px 0 var(--border-dk);
+    }
+
+    body.is-phone-device.is-phone-landscape .chrome-button.large {
+      width: 40px;
+      height: 40px;
+      font-size: 14px;
+      box-shadow: 3px 3px 0 var(--border-dk);
+    }
+
+    body.is-phone-device.is-phone-landscape .deck-sliders {
+      gap: 10px;
+    }
+
+    body.is-phone-device.is-phone-landscape .deck-slider {
+      gap: 4px;
+      font-size: 6px;
+    }
+
+    body.is-phone-device.is-phone-landscape .deck-toggle-group {
+      gap: 4px;
+    }
+
+    body.is-phone-device.is-phone-landscape .tiny-toggle {
+      min-width: 84px;
+      padding: 5px 6px;
+      font-size: 5.5px;
+      box-shadow: 2px 2px 0 var(--border-dk);
+    }
+
+    body.is-phone-device.is-phone-landscape .playlist-topbar {
+      padding: 6px;
+    }
+
+    body.is-phone-device.is-phone-landscape .playlist-select {
+      padding: 5px 6px;
+      font-size: 5.5px;
+    }
+
+    body.is-phone-device.is-phone-landscape .playlist-header {
+      padding: 6px 8px;
+      font-size: 5.5px;
+    }
+
+    body.is-phone-device.is-phone-landscape .playlist-list {
+      padding: 4px;
+    }
+
+    body.is-phone-device.is-phone-landscape .playlist-item button {
+      padding: 4px 5px;
+      font-size: 5.5px;
+      line-height: 1.45;
+    }
+
+    body.is-phone-device.is-phone-landscape .playlist-duration {
+      min-width: 34px;
+    }
+
+    body.is-phone-device.is-phone-landscape .playlist-status {
+      margin-top: 2px;
+      font-size: 4.75px;
+    }
+
+    body.is-phone-device.is-phone-landscape .playlist-footer {
+      gap: 6px;
+      padding: 6px 8px;
+      font-size: 5.5px;
+    }
+
+    body.is-phone-device.is-phone-landscape .content-window-head {
+      padding: 10px 12px 9px;
+    }
+
+    body.is-phone-device.is-phone-landscape .content-window-head p,
+    body.is-phone-device.is-phone-landscape .content-card-title,
+    body.is-phone-device.is-phone-landscape .content-card-text {
+      font-size: 6px;
+    }
+
+    body.is-phone-device.is-phone-landscape .content-window-body {
+      padding: 10px;
+    }
+
+    body.is-phone-device.is-phone-landscape .desktop-taskbar-shell {
+      min-height: var(--taskbar-height);
+      gap: 3px;
+      padding:
+        2px
+        calc(4px + var(--safe-right))
+        calc(2px + var(--safe-bottom))
+        calc(4px + var(--safe-left));
+    }
+
+    body.is-phone-device.is-phone-landscape .start-button {
+      min-width: 74px;
+      height: 28px;
+      gap: 6px;
+      padding: 0 8px 0 6px;
+      font-size: 11px;
+    }
+
+    body.is-phone-device.is-phone-landscape .start-button-logo {
+      width: 14px;
+      height: 14px;
+    }
+
+    body.is-phone-device.is-phone-landscape .taskbar-program {
+      min-width: 92px;
+      padding: 5px 8px;
+      font-size: 10px;
+    }
+
+    body.is-phone-device.is-phone-landscape .desktop-tray {
+      gap: 5px;
+      padding: 0 6px;
+    }
+
+    body.is-phone-device.is-phone-landscape .desktop-clock {
+      min-width: 46px;
+      font-size: 10px;
+    }
+
+    body.is-phone-device.is-phone-landscape .start-menu {
+      bottom: calc(var(--taskbar-height) - 5px + var(--safe-bottom));
+      width: min(216px, calc(var(--app-width) - var(--safe-left) - var(--safe-right) - 8px));
+      min-height: 180px;
+      max-height: calc(var(--app-height) - var(--safe-top) - var(--taskbar-height) - 6px);
+    }
+
+    body.is-phone-device.is-phone-landscape .start-menu-strip span {
+      font-size: 14px;
+    }
+
+    body.is-phone-device.is-phone-landscape .start-menu-item {
+      min-height: 40px;
+      gap: 8px;
+      padding: 6px 8px 6px 5px;
+      font-size: 11px;
+    }
+
+    body.is-phone-device.is-phone-landscape .start-menu-item .icon-player,
+    body.is-phone-device.is-phone-landscape .start-menu-item .icon-game {
+      width: 28px;
+      height: 28px;
+    }
+    @supports (-webkit-touch-callout: none) {
+      body.is-phone-device.is-phone-landscape .desktop-window-player,
+      body.is-phone-device.is-phone-landscape .desktop-window-game {
+        height: calc(var(--app-height) - var(--safe-top) - var(--safe-bottom) - var(--taskbar-height) - 10px);
       }
     }
