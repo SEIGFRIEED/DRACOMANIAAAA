@@ -143,7 +143,6 @@ const el = {
   spectrum:          document.getElementById("spectrum"),
   seekBar:           document.getElementById("seek-bar"),
   volumeBar:         document.getElementById("volume-bar"),
-  glowBar:           document.getElementById("glow-bar"),
   shuffleButton:     document.getElementById("shuffle-button"),
   repeatButton:      document.getElementById("repeat-button"),
   gameProgramFrame:  document.getElementById("game-program-frame"),
@@ -165,7 +164,6 @@ function init() {
     resetPlayerToEmptyState();
   }
   setPanelView("reproductor");
-  syncGlow();
   tickClock();
   renderTaskbarPrograms();
   startVisualizer();
@@ -377,8 +375,6 @@ function bindEvents() {
   el.volumeBar.addEventListener("input", () => {
     el.audio.volume = Number(el.volumeBar.value);
   });
-
-  el.glowBar.addEventListener("input", syncGlow);
 
   el.navItems.forEach(btn => {
     btn.addEventListener("click", () => setPanelView(btn.dataset.panel));
@@ -1278,11 +1274,6 @@ function tickClock() {
   setInterval(refresh, 1000);
 }
 
-function syncGlow() {
-  const glow = Number(el.glowBar.value) / 100;
-  document.documentElement.style.setProperty("--glow-strength", String(glow));
-}
-
 function updateTransportState(label) {
   el.transportState.textContent = label;
 }
@@ -1611,6 +1602,11 @@ function setPanelView(view) {
 
   if (view === "historia") {
     renderStoryWindow();
+    return;
+  }
+
+  if (view === "juego") {
+    renderGameWindow();
     return;
   }
 
