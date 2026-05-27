@@ -3061,6 +3061,10 @@
       border-top: 2px solid var(--red3);
     }
 
+    body.is-phone-device.is-phone-portrait .playlist-panel.is-hidden {
+      display: none;
+    }
+
     body.is-phone-device.is-phone-portrait .playlist-topbar {
       padding: 7px;
     }
@@ -3288,6 +3292,10 @@
       min-height: 0;
       border-top: none;
       border-left: 2px solid var(--red3);
+    }
+
+    body.is-phone-device.is-phone-landscape .playlist-panel.is-hidden {
+      display: none;
     }
 
     body.is-phone-device.is-phone-landscape .playlist-screen {
