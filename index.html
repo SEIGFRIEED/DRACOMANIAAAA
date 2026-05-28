@@ -47,7 +47,7 @@
       <div class="desktop-backdrop" aria-hidden="true"></div>
 
       <nav class="desktop-icons desktop-icons-left" aria-label="Accesos del sistema y programas">
-        <button class="desktop-icon game-target" data-game-id="desktop-trash" type="button">
+        <button class="desktop-icon game-target" data-program-launch="trash" data-game-id="desktop-trash" type="button">
           <span class="desktop-icon-art icon-trash" aria-hidden="true"></span>
           <span class="desktop-icon-label">TRASH</span>
         </button>
@@ -100,6 +100,15 @@
         </div>
 
         <div class="desktop-taskbar" id="desktop-taskbar" aria-label="Programas abiertos">
+          <button
+            class="taskbar-program game-target"
+            data-program-toggle="trash"
+            data-game-id="task-trash"
+            type="button"
+            hidden
+          >
+            TRASH
+          </button>
           <button
             class="taskbar-program game-target"
             data-program-toggle="reproductor"
@@ -235,6 +244,44 @@
           </div>
 
           <audio id="audio-player" preload="metadata"></audio>
+        </section>
+      </section>
+
+      <section class="desktop-window desktop-window-trash" id="window-trash" data-window="trash" hidden>
+        <section class="system-window-card trash-window-card">
+          <header class="xp-titlebar">
+            <div class="xp-title-left">
+              <span class="xp-app-icon" aria-hidden="true"></span>
+              <span>TRASH</span>
+            </div>
+            <div class="xp-window-actions">
+              <button class="xp-action game-target" data-window-action="minimize" data-window-target="trash" data-game-id="trash-minimize" type="button" aria-label="Minimizar trash">_</button>
+              <button class="xp-action game-target" data-window-action="maximize" data-window-target="trash" data-game-id="trash-focus" type="button" aria-label="Expandir trash">□</button>
+              <button class="xp-action xp-close game-target" data-window-action="close" data-window-target="trash" data-game-id="trash-close" type="button" aria-label="Cerrar trash">×</button>
+            </div>
+          </header>
+
+          <div class="system-window-body trash-window-body">
+            <div class="trash-shell">
+              <div class="trash-head">
+                <p class="trash-kicker">ARCHIVO OCULTO</p>
+                <h2 class="trash-title">VAULT DE INEDITAS</h2>
+                <p class="trash-copy">Esta ventana queda lista para que luego guardes aqui pistas ineditas.</p>
+              </div>
+
+              <section class="trash-panel game-target" data-game-id="trash-empty-state" tabindex="-1">
+                <div class="trash-panel-top">
+                  <span>TRASH://UNRELEASED</span>
+                  <span>00 ARCHIVOS</span>
+                </div>
+                <ol class="trash-list">
+                  <li class="trash-empty-note">SIN PISTAS CARGADAS TODAVIA</li>
+                </ol>
+              </section>
+
+              <p class="trash-footer-copy">Cuando quieras llenarlo, este espacio ya te queda funcionando.</p>
+            </div>
+          </div>
         </section>
       </section>
 

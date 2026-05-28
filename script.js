@@ -91,7 +91,9 @@ const state = {
   bootStarted: false,
   bootComplete: false,
   nextWindowZ:  20,
+  windowDrag: null,
   windows: {
+    trash:       { open: false, minimized: false, maximized: false, zIndex: 20 },
     reproductor: { open: false, minimized: false, maximized: false, zIndex: 20 },
     juego:       { open: false, minimized: false, maximized: false, zIndex: 21 },
   },
@@ -100,6 +102,7 @@ const state = {
 
 const el = {
   appShell:          document.getElementById("app-shell"),
+  desktopShell:      document.querySelector(".desktop-shell"),
   orientationGate:   document.getElementById("orientation-gate"),
   bootSequence:      document.getElementById("boot-sequence"),
   bootScreens:       Array.from(document.querySelectorAll("[data-boot-screen]")),
@@ -116,6 +119,7 @@ const el = {
   taskbarButtons:    Array.from(document.querySelectorAll("[data-program-toggle]")),
   windowActionButtons: Array.from(document.querySelectorAll("[data-window-action]")),
   windows: {
+    trash: document.getElementById("window-trash"),
     reproductor: document.getElementById("window-reproductor"),
     juego: document.getElementById("window-juego"),
   },
@@ -418,6 +422,13 @@ function bindEvents() {
       closeStartMenu();
       focusProgram(program);
     });
+
+    const titlebar = windowElement.querySelector(".xp-titlebar");
+    if (titlebar instanceof HTMLElement) {
+      titlebar.addEventListener("mousedown", event => {
+        beginWindowDrag(event, program);
+      });
+    }
   });
 
   document.addEventListener("click", event => {
@@ -425,6 +436,10 @@ function bindEvents() {
     if (el.startButton?.contains(event.target) || el.startMenu?.contains(event.target)) return;
     closeStartMenu();
   });
+
+  document.addEventListener("mousemove", handleWindowDragMove);
+  document.addEventListener("mouseup", endWindowDrag);
+  window.addEventListener("blur", endWindowDrag);
 
   el.shuffleButton.addEventListener("click", () => {
     state.shuffle = !state.shuffle;
@@ -470,6 +485,78 @@ function handleWindowAction(action, program) {
   focusProgram(program);
 }
 
+function beginWindowDrag(event, program) {
+  if (!(event.target instanceof HTMLElement)) return;
+  if (event.button !== 0) return;
+  if (isPhoneDevice()) return;
+  if (event.target.closest("[data-window-action]")) return;
+
+  const windowState = state.windows[program];
+  const windowElement = el.windows[program];
+  const shellElement = el.desktopShell;
+
+  if (!windowState || !(windowElement instanceof HTMLElement) || !(shellElement instanceof HTMLElement)) return;
+  if (!windowState.open || windowState.minimized || windowState.maximized) return;
+
+  const shellRect = shellElement.getBoundingClientRect();
+  const windowRect = windowElement.getBoundingClientRect();
+
+  state.windowDrag = {
+    program,
+    offsetX: event.clientX - windowRect.left,
+    offsetY: event.clientY - windowRect.top,
+    shellLeft: shellRect.left,
+    shellTop: shellRect.top,
+  };
+
+  windowElement.style.left = `${windowRect.left - shellRect.left}px`;
+  windowElement.style.top = `${windowRect.top - shellRect.top}px`;
+  windowElement.style.right = "auto";
+  windowElement.classList.add("is-dragging");
+  document.body.classList.add("window-dragging");
+  focusProgram(program);
+  event.preventDefault();
+}
+
+function handleWindowDragMove(event) {
+  if (!state.windowDrag) return;
+
+  const { program, offsetX, offsetY } = state.windowDrag;
+  const windowElement = el.windows[program];
+  const shellElement = el.desktopShell;
+  const windowState = state.windows[program];
+
+  if (!windowState || !(windowElement instanceof HTMLElement) || !(shellElement instanceof HTMLElement)) {
+    endWindowDrag();
+    return;
+  }
+
+  const shellRect = shellElement.getBoundingClientRect();
+  const windowRect = windowElement.getBoundingClientRect();
+  const nextLeft = event.clientX - shellRect.left - offsetX;
+  const nextTop = event.clientY - shellRect.top - offsetY;
+  const maxLeft = Math.max(0, shellRect.width - windowRect.width);
+  const maxTop = Math.max(0, shellRect.height - windowRect.height);
+  const clampedLeft = Math.min(Math.max(0, nextLeft), maxLeft);
+  const clampedTop = Math.min(Math.max(0, nextTop), maxTop);
+
+  windowElement.style.left = `${Math.round(clampedLeft)}px`;
+  windowElement.style.top = `${Math.round(clampedTop)}px`;
+  windowElement.style.right = "auto";
+}
+
+function endWindowDrag() {
+  if (!state.windowDrag) return;
+
+  const windowElement = el.windows[state.windowDrag.program];
+  if (windowElement instanceof HTMLElement) {
+    windowElement.classList.remove("is-dragging");
+  }
+
+  state.windowDrag = null;
+  document.body.classList.remove("window-dragging");
+}
+
 function openProgram(program) {
   if (!program || !el.windows[program]) return;
 
@@ -499,6 +586,10 @@ function openProgram(program) {
 function closeProgram(program) {
   if (!program || !el.windows[program]) return;
 
+  if (state.windowDrag?.program === program) {
+    endWindowDrag();
+  }
+
   const windowState = state.windows[program];
   const windowElement = el.windows[program];
   if (!windowState || !(windowElement instanceof HTMLElement)) return;
@@ -519,6 +610,10 @@ function closeProgram(program) {
 }
 
 function minimizeProgram(program) {
+  if (state.windowDrag?.program === program) {
+    endWindowDrag();
+  }
+
   const windowState = state.windows[program];
   const windowElement = el.windows[program];
   if (!windowState || !(windowElement instanceof HTMLElement) || !windowState.open) return;
@@ -531,6 +626,10 @@ function minimizeProgram(program) {
 }
 
 function toggleMaximizeProgram(program) {
+  if (state.windowDrag?.program === program) {
+    endWindowDrag();
+  }
+
   const windowState = state.windows[program];
   const windowElement = el.windows[program];
   if (!windowState || !(windowElement instanceof HTMLElement) || !windowState.open) return;
@@ -567,11 +666,32 @@ function syncWindowPresentation(program) {
   const windowState = state.windows[program];
   const windowElement = el.windows[program];
   const maximizeButton = document.querySelector(`[data-window-action="maximize"][data-window-target="${program}"]`);
-  const programLabel = program === "juego" ? "juego" : "reproductor";
+  const programLabel = program === "juego"
+    ? "juego"
+    : program === "trash"
+      ? "trash"
+      : "reproductor";
 
   if (!windowState || !(windowElement instanceof HTMLElement)) return;
 
+  const wasMaximized = windowElement.classList.contains("is-maximized");
+
+  if (!wasMaximized && windowState.maximized) {
+    windowElement.dataset.restoreLeft = windowElement.style.left || "";
+    windowElement.dataset.restoreTop = windowElement.style.top || "";
+    windowElement.dataset.restoreRight = windowElement.style.right || "";
+    windowElement.style.left = "";
+    windowElement.style.top = "";
+    windowElement.style.right = "";
+  }
+
   windowElement.classList.toggle("is-maximized", Boolean(windowState.maximized));
+
+  if (wasMaximized && !windowState.maximized) {
+    windowElement.style.left = windowElement.dataset.restoreLeft || "";
+    windowElement.style.top = windowElement.dataset.restoreTop || "";
+    windowElement.style.right = windowElement.dataset.restoreRight || "";
+  }
 
   if (maximizeButton instanceof HTMLElement) {
     maximizeButton.setAttribute(
@@ -628,6 +748,7 @@ function getFocusedProgram() {
 }
 
 function getDefaultSelectionId(program) {
+  if (program === "trash") return "trash-empty-state";
   if (program === "juego") return "game-close";
 
   if (state.panelView === "reproductor") {

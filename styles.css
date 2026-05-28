@@ -420,7 +420,7 @@
 
     .icon-trash {
       background-image: url("assets/system/trash-icon-transparent.png?v=20260527d");
-      background-size: 48px 48px;
+      background-size: 101px 94px;
       background-position: center;
     }
 
@@ -443,6 +443,7 @@
       width: 48px;
       height: 48px;
       background: center / contain no-repeat url("assets/system/game-icon.png");
+      background-size: 100px 93px;
     }
 
     .icon-game::before {
@@ -768,6 +769,21 @@
       height: calc(var(--app-height) - 56px - var(--safe-bottom));
     }
 
+    .desktop-window-trash {
+      top: 78px;
+      right: 56px;
+      width: min(560px, calc(100vw - 342px));
+      height: min(470px, calc(var(--app-height) - 180px - var(--safe-bottom)));
+    }
+
+    .desktop-window-trash.is-maximized {
+      top: 8px;
+      left: 8px;
+      right: auto;
+      width: calc(100vw - 16px);
+      height: calc(var(--app-height) - 56px - var(--safe-bottom));
+    }
+
     .desktop-window-player .wmp-window,
     .system-window-card {
       width: 100%;
@@ -806,6 +822,89 @@
       background: #000000;
     }
 
+    .trash-window-body {
+      overflow: auto;
+      background:
+        radial-gradient(circle at top right, rgba(140, 0, 6, 0.14), transparent 34%),
+        linear-gradient(180deg, rgba(255,255,255,0.02), transparent 28%),
+        var(--bg1);
+    }
+
+    .trash-shell {
+      display: grid;
+      gap: 14px;
+      padding: 16px;
+      align-content: start;
+      min-height: 100%;
+    }
+
+    .trash-head {
+      display: grid;
+      gap: 8px;
+      padding: 14px;
+      border: 3px solid var(--red3);
+      background:
+        linear-gradient(180deg, rgba(196,180,154,0.06), rgba(0,0,0,0)),
+        var(--bg0);
+      box-shadow: 4px 4px 0 var(--border-dk);
+    }
+
+    .trash-kicker,
+    .trash-panel-top,
+    .trash-footer-copy {
+      color: var(--bone2);
+      font-size: 7px;
+      text-transform: uppercase;
+      line-height: 1.8;
+    }
+
+    .trash-title {
+      color: var(--red);
+      font-size: 12px;
+      text-transform: uppercase;
+      text-shadow: 2px 2px 0 #000;
+    }
+
+    .trash-copy {
+      color: var(--bone);
+      font-size: 8px;
+      line-height: 1.9;
+    }
+
+    .trash-panel {
+      display: grid;
+      gap: 0;
+      border: 3px solid var(--red3);
+      background: var(--bg0);
+      box-shadow: 4px 4px 0 var(--border-dk);
+    }
+
+    .trash-panel-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px 10px;
+      border-bottom: 2px solid var(--red3);
+      background: rgba(100,0,4,0.14);
+      color: var(--red);
+    }
+
+    .trash-list {
+      margin: 0;
+      padding: 12px 14px 14px 28px;
+      display: grid;
+      gap: 8px;
+      color: var(--bone);
+      font-size: 8px;
+      line-height: 1.9;
+    }
+
+    .trash-empty-note {
+      color: var(--bone);
+      text-transform: uppercase;
+    }
+
     .wmp-window {
       background: var(--bg1);
       border: 4px solid var(--border-lt);
@@ -824,6 +923,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      cursor: grab;
       height: 34px;
       padding: 0 6px;
       /* Blood-drip stripe pattern */
@@ -836,6 +936,15 @@
         );
       border-bottom: 4px solid var(--border-dk);
       overflow: hidden;
+    }
+
+    .desktop-window.is-dragging .xp-titlebar {
+      cursor: grabbing;
+    }
+
+    body.window-dragging,
+    body.window-dragging * {
+      user-select: none;
     }
 
     /* Slow shimmer */
@@ -2277,6 +2386,11 @@
         width: min(700px, calc(100vw - 148px));
       }
 
+      .desktop-window-trash {
+        right: 24px;
+        width: min(520px, calc(100vw - 162px));
+      }
+
       .player-frame { grid-template-columns: 100px minmax(0,1fr); }
       .playlist-panel { grid-column: 1/-1; border-left: none; border-top: 2px solid var(--red3); }
       .content-window { grid-column: 2 / -1; }
@@ -2293,7 +2407,8 @@
       }
 
       .desktop-window-player,
-      .desktop-window-game {
+      .desktop-window-game,
+      .desktop-window-trash {
         left: 12px;
         right: 12px;
         width: auto;
@@ -2307,6 +2422,11 @@
       .desktop-window-game {
         top: 268px;
         height: calc(var(--app-height) - 320px - var(--safe-bottom));
+      }
+
+      .desktop-window-trash {
+        top: 286px;
+        height: calc(var(--app-height) - 338px - var(--safe-bottom));
       }
 
       .desktop-taskbar-shell {
@@ -2756,7 +2876,8 @@
     }
 
     body.has-phone-fullscreen-window .desktop-window-player.is-maximized,
-    body.has-phone-fullscreen-window .desktop-window-game.is-maximized {
+    body.has-phone-fullscreen-window .desktop-window-game.is-maximized,
+    body.has-phone-fullscreen-window .desktop-window-trash.is-maximized {
       top: calc(0px + var(--safe-top));
       left: calc(0px + var(--safe-left));
       right: calc(0px + var(--safe-right));
@@ -2801,7 +2922,8 @@
     }
 
     body.is-phone-device.is-phone-portrait .desktop-window-player,
-    body.is-phone-device.is-phone-portrait .desktop-window-game {
+    body.is-phone-device.is-phone-portrait .desktop-window-game,
+    body.is-phone-device.is-phone-portrait .desktop-window-trash {
       top: calc(148px + var(--safe-top));
       left: calc(10px + var(--safe-left));
       right: calc(10px + var(--safe-right));
@@ -2811,13 +2933,15 @@
     }
 
     body.is-phone-device.is-phone-portrait.has-phone-open-window .desktop-window-player,
-    body.is-phone-device.is-phone-portrait.has-phone-open-window .desktop-window-game {
+    body.is-phone-device.is-phone-portrait.has-phone-open-window .desktop-window-game,
+    body.is-phone-device.is-phone-portrait.has-phone-open-window .desktop-window-trash {
       top: calc(10px + var(--safe-top));
       height: calc(var(--app-height) - var(--safe-top) - var(--safe-bottom) - var(--taskbar-height) - 20px);
     }
 
     body.is-phone-device.is-phone-portrait .desktop-window-player.is-maximized,
-    body.is-phone-device.is-phone-portrait .desktop-window-game.is-maximized {
+    body.is-phone-device.is-phone-portrait .desktop-window-game.is-maximized,
+    body.is-phone-device.is-phone-portrait .desktop-window-trash.is-maximized {
       top: calc(4px + var(--safe-top));
       left: calc(4px + var(--safe-left));
       right: calc(4px + var(--safe-right));
@@ -3114,7 +3238,14 @@
     body.is-phone-device.is-phone-portrait .desktop-icon-art.icon-game {
       width: 48px;
       height: 48px;
-      background-size: 48px 48px;
+    }
+
+    body.is-phone-device.is-phone-portrait .desktop-icon-art.icon-trash {
+      background-size: 101px 94px;
+    }
+
+    body.is-phone-device.is-phone-portrait .desktop-icon-art.icon-game {
+      background-size: 100px 93px;
     }
 
     body.is-phone-device.is-phone-portrait .content-window-head {
@@ -3125,6 +3256,26 @@
     body.is-phone-device.is-phone-portrait .content-card-title,
     body.is-phone-device.is-phone-portrait .content-card-text {
       font-size: 6px;
+    }
+
+    body.is-phone-device.is-phone-portrait .trash-title {
+      font-size: 9px;
+    }
+
+    body.is-phone-device.is-phone-portrait .trash-copy,
+    body.is-phone-device.is-phone-portrait .trash-list {
+      font-size: 6px;
+    }
+
+    body.is-phone-device.is-phone-portrait .trash-shell {
+      gap: 10px;
+      padding: 10px;
+    }
+
+    body.is-phone-device.is-phone-portrait .trash-head,
+    body.is-phone-device.is-phone-portrait .trash-panel {
+      border-width: 2px;
+      box-shadow: 2px 2px 0 var(--border-dk);
     }
 
     body.is-phone-device.is-phone-portrait .content-window-body {
@@ -3206,10 +3357,14 @@
       height: 44px;
     }
 
+    body.is-phone-device.is-phone-landscape .desktop-icon-art.icon-game {
+      background-size: 92px 85px;
+    }
+
     body.is-phone-device.is-phone-landscape .desktop-icon-art.icon-trash {
       width: 44px;
       height: 44px;
-      background-size: 44px 44px;
+      background-size: 93px 86px;
     }
 
     body.is-phone-device.is-phone-landscape .desktop-icon-label {
@@ -3218,7 +3373,8 @@
     }
 
     body.is-phone-device.is-phone-landscape .desktop-window-player,
-    body.is-phone-device.is-phone-landscape .desktop-window-game {
+    body.is-phone-device.is-phone-landscape .desktop-window-game,
+    body.is-phone-device.is-phone-landscape .desktop-window-trash {
       top: calc(4px + var(--safe-top));
       left: calc(4px + var(--safe-left));
       right: calc(4px + var(--safe-right));
@@ -3227,7 +3383,8 @@
     }
 
     body.is-phone-device.is-phone-landscape .desktop-window-player.is-maximized,
-    body.is-phone-device.is-phone-landscape .desktop-window-game.is-maximized {
+    body.is-phone-device.is-phone-landscape .desktop-window-game.is-maximized,
+    body.is-phone-device.is-phone-landscape .desktop-window-trash.is-maximized {
       top: calc(4px + var(--safe-top));
       left: calc(4px + var(--safe-left));
       right: calc(4px + var(--safe-right));
@@ -3492,6 +3649,15 @@
     body.is-phone-device.is-phone-landscape .content-window-head p,
     body.is-phone-device.is-phone-landscape .content-card-title,
     body.is-phone-device.is-phone-landscape .content-card-text {
+      font-size: 6px;
+    }
+
+    body.is-phone-device.is-phone-landscape .trash-title {
+      font-size: 9px;
+    }
+
+    body.is-phone-device.is-phone-landscape .trash-copy,
+    body.is-phone-device.is-phone-landscape .trash-list {
       font-size: 6px;
     }
 
