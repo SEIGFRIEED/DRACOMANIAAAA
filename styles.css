@@ -419,7 +419,7 @@
     }
 
     .icon-trash {
-      background-image: url("assets/system/trash-icon-transparent.png");
+      background-image: url("assets/system/trash-icon-transparent.png?v=20260527c");
       background-size: 48px 48px;
       background-position: center;
     }
@@ -427,7 +427,7 @@
     .icon-player {
       width: 48px;
       height: 48px;
-      background: center / contain no-repeat url("assets/system/player-icon-transparent.png");
+      background: center / contain no-repeat url("assets/system/player-icon-transparent.png?v=20260527c");
       filter: none;
     }
 
@@ -437,10 +437,6 @@
 
     .icon-player::after {
       content: none;
-    }
-
-    .desktop-icon-art.icon-player {
-      background-size: 26px 26px;
     }
 
     .icon-game {
@@ -3121,10 +3117,6 @@
       background-size: 48px 48px;
     }
 
-    body.is-phone-device.is-phone-portrait .desktop-icon-art.icon-player {
-      background-size: 26px 26px;
-    }
-
     body.is-phone-device.is-phone-portrait .content-window-head {
       padding: 10px 12px 9px;
     }
@@ -3212,10 +3204,6 @@
     body.is-phone-device.is-phone-landscape .desktop-icon-art.icon-game {
       width: 44px;
       height: 44px;
-    }
-
-    body.is-phone-device.is-phone-landscape .desktop-icon-art.icon-player {
-      background-size: 24px 24px;
     }
 
     body.is-phone-device.is-phone-landscape .desktop-icon-art.icon-trash {
