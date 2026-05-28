@@ -439,6 +439,10 @@
       content: none;
     }
 
+    .desktop-icon-art.icon-player {
+      background-size: 26px 26px;
+    }
+
     .icon-game {
       width: 48px;
       height: 48px;
@@ -3117,6 +3121,10 @@
       background-size: 48px 48px;
     }
 
+    body.is-phone-device.is-phone-portrait .desktop-icon-art.icon-player {
+      background-size: 26px 26px;
+    }
+
     body.is-phone-device.is-phone-portrait .content-window-head {
       padding: 10px 12px 9px;
     }
@@ -3204,6 +3212,10 @@
     body.is-phone-device.is-phone-landscape .desktop-icon-art.icon-game {
       width: 44px;
       height: 44px;
+    }
+
+    body.is-phone-device.is-phone-landscape .desktop-icon-art.icon-player {
+      background-size: 24px 24px;
     }
 
     body.is-phone-device.is-phone-landscape .desktop-icon-art.icon-trash {
