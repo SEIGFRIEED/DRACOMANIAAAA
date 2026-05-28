@@ -419,7 +419,7 @@
     }
 
     .icon-trash {
-      background-image: url("assets/system/trash-icon-transparent.png?v=20260527c");
+      background-image: url("assets/system/trash-icon-transparent.png?v=20260527d");
       background-size: 48px 48px;
       background-position: center;
     }
@@ -427,7 +427,7 @@
     .icon-player {
       width: 48px;
       height: 48px;
-      background: center / contain no-repeat url("assets/system/player-icon-transparent.png?v=20260527c");
+      background: center / contain no-repeat url("assets/system/player-icon-transparent.png?v=20260527d");
       filter: none;
     }
 
