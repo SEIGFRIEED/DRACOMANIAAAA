@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=20260527f" />
+  <link rel="stylesheet" href="styles.css?v=20260615c" />
 </head>
 <body>
   <section class="orientation-gate" id="orientation-gate" aria-live="polite" hidden>
@@ -59,7 +59,7 @@
           type="button"
         >
           <span class="desktop-icon-art icon-player" aria-hidden="true"></span>
-          <span class="desktop-icon-label">REPRODUCTOR.EXE</span>
+          <span class="desktop-icon-label">PREVIEW</span>
         </button>
 
         <button
@@ -70,6 +70,26 @@
         >
           <span class="desktop-icon-art icon-game" aria-hidden="true"></span>
           <span class="desktop-icon-label">JUEGO.EXE</span>
+        </button>
+
+        <button
+          class="desktop-icon game-target"
+          data-program-launch="galeria"
+          data-game-id="desktop-galeria"
+          type="button"
+        >
+          <span class="desktop-icon-art icon-gallery" aria-hidden="true"></span>
+          <span class="desktop-icon-label">GALERIA</span>
+        </button>
+
+        <button
+          class="desktop-icon game-target"
+          data-program-launch="boletas"
+          data-game-id="desktop-boletas"
+          type="button"
+        >
+          <span class="desktop-icon-art icon-boletas" aria-hidden="true"></span>
+          <span class="desktop-icon-label">BOLETAS</span>
         </button>
       </nav>
 
@@ -88,12 +108,22 @@
             <div class="start-menu-main">
               <button class="start-menu-item game-target" data-start-launch="reproductor" data-game-id="start-reproductor" type="button">
                 <span class="start-menu-item-art icon-player" aria-hidden="true"></span>
-                <span>DRACOMANIA REPRODUCTOR</span>
+                <span>DRACOMANIA PREVIEW</span>
               </button>
 
               <button class="start-menu-item game-target" data-start-launch="juego" data-game-id="start-juego" type="button">
                 <span class="start-menu-item-art icon-game" aria-hidden="true"></span>
                 <span>DRACOMANIA JUEGO</span>
+              </button>
+
+              <button class="start-menu-item game-target" data-start-launch="galeria" data-game-id="start-galeria" type="button">
+                <span class="start-menu-item-art icon-gallery" aria-hidden="true"></span>
+                <span>DRACOMANIA GALERIA</span>
+              </button>
+
+              <button class="start-menu-item game-target" data-start-launch="boletas" data-game-id="start-boletas" type="button">
+                <span class="start-menu-item-art icon-boletas" aria-hidden="true"></span>
+                <span>DRACOMANIA BOLETAS</span>
               </button>
             </div>
           </div>
@@ -116,7 +146,7 @@
             type="button"
             hidden
           >
-            REPRODUCTOR
+            PREVIEW
           </button>
           <button
             class="taskbar-program game-target"
@@ -126,6 +156,24 @@
             hidden
           >
             JUEGO
+          </button>
+          <button
+            class="taskbar-program game-target"
+            data-program-toggle="galeria"
+            data-game-id="task-galeria"
+            type="button"
+            hidden
+          >
+            GALERIA
+          </button>
+          <button
+            class="taskbar-program game-target"
+            data-program-toggle="boletas"
+            data-game-id="task-boletas"
+            type="button"
+            hidden
+          >
+            BOLETAS
           </button>
         </div>
 
@@ -142,18 +190,18 @@
           <header class="xp-titlebar">
             <div class="xp-title-left">
               <span class="xp-app-icon" aria-hidden="true"></span>
-              <span>DRACOMANIA</span>
+              <span>DRACOMANIA PREVIEW</span>
             </div>
             <div class="xp-window-actions">
-              <button class="xp-action game-target" data-window-action="minimize" data-window-target="reproductor" data-game-id="player-minimize" type="button" aria-label="Minimizar reproductor">_</button>
-              <button class="xp-action game-target" data-window-action="maximize" data-window-target="reproductor" data-game-id="player-focus" type="button" aria-label="Expandir reproductor">□</button>
-              <button class="xp-action xp-close game-target" data-window-action="close" data-window-target="reproductor" data-game-id="player-close" type="button" aria-label="Cerrar reproductor">×</button>
+              <button class="xp-action game-target" data-window-action="minimize" data-window-target="reproductor" data-game-id="player-minimize" type="button" aria-label="Minimizar preview">_</button>
+              <button class="xp-action game-target" data-window-action="maximize" data-window-target="reproductor" data-game-id="player-focus" type="button" aria-label="Expandir preview">□</button>
+              <button class="xp-action xp-close game-target" data-window-action="close" data-window-target="reproductor" data-game-id="player-close" type="button" aria-label="Cerrar preview">×</button>
             </div>
           </header>
 
           <div class="player-frame">
             <aside class="left-nav">
-              <button class="nav-item game-target active" data-game-id="nav-reproductor" data-panel="reproductor" type="button">Reproductor</button>
+              <button class="nav-item game-target active" data-game-id="nav-reproductor" data-panel="reproductor" type="button">Preview</button>
               <button class="nav-item game-target" data-game-id="nav-creditos" data-panel="creditos" type="button">Creditos</button>
               <button class="nav-item game-target" data-game-id="nav-historia" data-panel="historia" type="button">Historia</button>
               <button class="nav-item game-target" data-game-id="nav-artworks" data-panel="artworks" type="button">Arte</button>
@@ -177,8 +225,8 @@
                 </div>
 
                 <div class="now-playing-panel">
-                  <div class="mini-cover" id="mini-cover">
-                    <img class="mini-cover-image" id="mini-cover-image" alt="Portada del álbum" />
+                  <div class="mini-cover" id="mini-cover" hidden>
+                    <img class="mini-cover-image" id="mini-cover-image" alt="Imagen del album" />
                   </div>
                   <div class="panel-meta">
                     <h2 id="panel-track-title">INTRO</h2>
@@ -226,7 +274,7 @@
 
             <aside class="playlist-panel" id="playlist-panel">
               <div class="playlist-topbar">
-                <div class="playlist-select" id="panel-label">▼ REPRODUCTOR</div>
+                <div class="playlist-select" id="panel-label">▼ PREVIEW</div>
               </div>
               <div class="playlist-screen">
                 <div class="playlist-header">
@@ -290,7 +338,7 @@
           <header class="xp-titlebar">
             <div class="xp-title-left">
               <span class="xp-app-icon" aria-hidden="true"></span>
-              <span>DRACOMANIA JUEGO</span>
+              <span>JUEGO.EXE</span>
             </div>
             <div class="xp-window-actions">
               <button class="xp-action game-target" data-window-action="minimize" data-window-target="juego" data-game-id="game-minimize" type="button" aria-label="Minimizar juego">_</button>
@@ -300,19 +348,59 @@
           </header>
 
           <div class="system-window-body">
-            <iframe
-              class="system-program-frame"
-              id="game-program-frame"
-              title="Juego DRACOMANIA"
-              loading="lazy"
-              data-src="juego.html"
-            ></iframe>
+            <div class="coming-soon-panel game-target" data-game-id="game-coming-soon" tabindex="-1">
+              <span>COMING SOON</span>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <section class="desktop-window desktop-window-game desktop-window-gallery" id="window-galeria" data-window="galeria" hidden>
+        <section class="system-window-card">
+          <header class="xp-titlebar">
+            <div class="xp-title-left">
+              <span class="xp-app-icon" aria-hidden="true"></span>
+              <span>GALERIA</span>
+            </div>
+            <div class="xp-window-actions">
+              <button class="xp-action game-target" data-window-action="minimize" data-window-target="galeria" data-game-id="gallery-minimize" type="button" aria-label="Minimizar galeria">_</button>
+              <button class="xp-action game-target" data-window-action="maximize" data-window-target="galeria" data-game-id="gallery-focus" type="button" aria-label="Expandir galeria">□</button>
+              <button class="xp-action xp-close game-target" data-window-action="close" data-window-target="galeria" data-game-id="gallery-close" type="button" aria-label="Cerrar galeria">×</button>
+            </div>
+          </header>
+
+          <div class="system-window-body">
+            <div class="coming-soon-panel game-target" data-game-id="gallery-coming-soon" tabindex="-1">
+              <span>COMING SOON</span>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <section class="desktop-window desktop-window-game desktop-window-boletas" id="window-boletas" data-window="boletas" hidden>
+        <section class="system-window-card">
+          <header class="xp-titlebar">
+            <div class="xp-title-left">
+              <span class="xp-app-icon" aria-hidden="true"></span>
+              <span>BOLETAS</span>
+            </div>
+            <div class="xp-window-actions">
+              <button class="xp-action game-target" data-window-action="minimize" data-window-target="boletas" data-game-id="tickets-minimize" type="button" aria-label="Minimizar boletas">_</button>
+              <button class="xp-action game-target" data-window-action="maximize" data-window-target="boletas" data-game-id="tickets-focus" type="button" aria-label="Expandir boletas">□</button>
+              <button class="xp-action xp-close game-target" data-window-action="close" data-window-target="boletas" data-game-id="tickets-close" type="button" aria-label="Cerrar boletas">×</button>
+            </div>
+          </header>
+
+          <div class="system-window-body">
+            <div class="coming-soon-panel game-target" data-game-id="tickets-coming-soon" tabindex="-1">
+              <span>COMING SOON</span>
+            </div>
           </div>
         </section>
       </section>
     </section>
   </main>
 
-  <script src="script.js?v=20260527f"></script>
+  <script src="script.js?v=20260615b"></script>
 </body>
 </html>

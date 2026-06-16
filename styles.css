@@ -30,6 +30,7 @@
       --safe-bottom: env(safe-area-inset-bottom, 0px);
       --safe-left: env(safe-area-inset-left, 0px);
       --taskbar-height: 40px;
+      --site-cursor: url("assets/system/site-cursor.png?v=20260615a") 1 1, auto;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -68,6 +69,18 @@
       font-family: inherit;
       -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;
+    }
+
+    @media (pointer: fine) {
+      html,
+      body,
+      body *,
+      body *::before,
+      body *::after,
+      input[type="range"]::-webkit-slider-thumb,
+      input[type="range"]::-moz-range-thumb {
+        cursor: var(--site-cursor) !important;
+      }
     }
 
     .game-target {
@@ -454,6 +467,28 @@
       content: none;
     }
 
+    .icon-gallery {
+      width: 64px;
+      height: 64px;
+      background: center / contain no-repeat url("assets/system/gallery-icon.png?v=20260615a");
+    }
+
+    .icon-gallery::before,
+    .icon-gallery::after {
+      content: none;
+    }
+
+    .icon-boletas {
+      width: 48px;
+      height: 48px;
+      background: center / contain no-repeat url("assets/system/boletas-icon.png?v=20260615a");
+    }
+
+    .icon-boletas::before,
+    .icon-boletas::after {
+      content: none;
+    }
+
     .desktop-taskbar-shell {
       position: absolute;
       left: 0;
@@ -606,6 +641,16 @@
     .start-menu-item .icon-game {
       width: 36px;
       height: 36px;
+    }
+
+    .start-menu-item .icon-gallery {
+      width: 40px;
+      height: 40px;
+    }
+
+    .start-menu-item .icon-boletas {
+      width: 32px;
+      height: 32px;
     }
 
     .desktop-taskbar {
@@ -761,6 +806,16 @@
       height: min(560px, calc(var(--app-height) - 170px - var(--safe-bottom)));
     }
 
+    .desktop-window-gallery {
+      top: 122px;
+      right: 156px;
+    }
+
+    .desktop-window-boletas {
+      top: 154px;
+      right: 194px;
+    }
+
     .desktop-window-game.is-maximized {
       top: 8px;
       left: 8px;
@@ -820,6 +875,35 @@
       display: block;
       border: none;
       background: #000000;
+    }
+
+    .coming-soon-panel {
+      min-height: 100%;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      color: var(--red);
+      font-family: 'Press Start 2P', monospace;
+      font-size: 32px;
+      line-height: 1.35;
+      text-align: center;
+      text-transform: uppercase;
+      text-shadow:
+        3px 3px 0 #000000,
+        0 0 18px rgba(255, 0, 0, 0.58);
+      background:
+        repeating-linear-gradient(
+          180deg,
+          rgba(255, 0, 0, 0.08) 0px,
+          rgba(255, 0, 0, 0.08) 1px,
+          transparent 1px,
+          transparent 5px
+        ),
+        #000000;
+    }
+
+    .coming-soon-panel span {
+      display: block;
     }
 
     .trash-window-body {
@@ -1231,6 +1315,19 @@
       color: var(--bone);
       font-size: 9px;
       line-height: 2;
+      opacity: 0.68;
+      filter: blur(3px);
+      text-shadow: 0 0 10px rgba(244, 230, 208, 0.78);
+    }
+
+    /* Blur visual for censored track titles (match credits style) */
+    .playlist-title.censored,
+    #track-name.censored,
+    #panel-track-title.censored {
+      color: var(--bone);
+      opacity: 0.68;
+      filter: blur(3px);
+      text-shadow: 0 0 10px rgba(244, 230, 208, 0.78);
     }
 
     .content-card {
@@ -2496,6 +2593,7 @@
         gap: 6px;
       }
       .desktop-icon-label { font-size: 10px; }
+      .coming-soon-panel { font-size: 22px; }
       .desktop-window-player,
       .desktop-window-game {
         left: 8px;
@@ -3235,7 +3333,9 @@
 
     body.is-phone-device.is-phone-portrait .desktop-icon-art.icon-trash,
     body.is-phone-device.is-phone-portrait .desktop-icon-art.icon-player,
-    body.is-phone-device.is-phone-portrait .desktop-icon-art.icon-game {
+    body.is-phone-device.is-phone-portrait .desktop-icon-art.icon-game,
+    body.is-phone-device.is-phone-portrait .desktop-icon-art.icon-gallery,
+    body.is-phone-device.is-phone-portrait .desktop-icon-art.icon-boletas {
       width: 48px;
       height: 48px;
     }
@@ -3246,6 +3346,11 @@
 
     body.is-phone-device.is-phone-portrait .desktop-icon-art.icon-game {
       background-size: 100px 93px;
+    }
+
+    body.is-phone-device.is-phone-portrait .desktop-icon-art.icon-gallery {
+      width: 56px;
+      height: 56px;
     }
 
     body.is-phone-device.is-phone-portrait .content-window-head {
@@ -3352,13 +3457,20 @@
     }
 
     body.is-phone-device.is-phone-landscape .desktop-icon-art.icon-player,
-    body.is-phone-device.is-phone-landscape .desktop-icon-art.icon-game {
+    body.is-phone-device.is-phone-landscape .desktop-icon-art.icon-game,
+    body.is-phone-device.is-phone-landscape .desktop-icon-art.icon-gallery,
+    body.is-phone-device.is-phone-landscape .desktop-icon-art.icon-boletas {
       width: 44px;
       height: 44px;
     }
 
     body.is-phone-device.is-phone-landscape .desktop-icon-art.icon-game {
       background-size: 92px 85px;
+    }
+
+    body.is-phone-device.is-phone-landscape .desktop-icon-art.icon-gallery {
+      width: 52px;
+      height: 52px;
     }
 
     body.is-phone-device.is-phone-landscape .desktop-icon-art.icon-trash {
@@ -3723,9 +3835,16 @@
     }
 
     body.is-phone-device.is-phone-landscape .start-menu-item .icon-player,
-    body.is-phone-device.is-phone-landscape .start-menu-item .icon-game {
+    body.is-phone-device.is-phone-landscape .start-menu-item .icon-game,
+    body.is-phone-device.is-phone-landscape .start-menu-item .icon-gallery,
+    body.is-phone-device.is-phone-landscape .start-menu-item .icon-boletas {
       width: 28px;
       height: 28px;
+    }
+
+    body.is-phone-device.is-phone-landscape .start-menu-item .icon-gallery {
+      width: 32px;
+      height: 32px;
     }
     @supports (-webkit-touch-callout: none) {
       body.is-phone-device.is-phone-landscape .desktop-window-player,

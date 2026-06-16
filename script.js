@@ -1,7 +1,7 @@
 const albumConfig = {
   artist: "DRACOMANIA",
   title: "DRACOMANIA",
-  artwork: "assets/portada/cover-art.png",
+  artwork: "",
   story: {
     title: "Historia",
     prompt: "Elige como quieres recibir la senal.",
@@ -42,31 +42,39 @@ const albumConfig = {
     disenadores: ["@seig.psd"],
     directoresDeArte: ["@dracopulsee", "@seig.psd"]
   },
-  artworks: [
-    {
-      title: "Portada principal",
-      image: "assets/portada/cover-art.png",
-      note: "Portada fija del álbum",
-    },
-  ],
+  artworks: [],
   tracks: [
     {
       title: "INTRO",
-      artist: "@dravenn",
+      artist: "@drv",
       duration: "--:--",
       src: "assets/tracks/intro.mp3",
     },
     {
-      title: "BLEEDIN",
-      artist: "Ecstasy",
+      title: "B1E3D1N0",
+      artist: "3st",
       duration: "--:--",
-      src: "assets/tracks/bleedin.mp3",
+      src: "assets/tracks/bleedin preview.wav",
     },
     {
-      title: "HATE TO BE SOBER",
-      artist: "Kanno & Santo",
+      title: "S0b34r",
+      artist: "K & S",
       duration: "--:--",
-      src: "assets/tracks/hate-to-be-sobre.mp3",
+      src: "assets/tracks/hate to be preview.wav"
+    },
+
+    {
+      title: "K5ng",
+      artist: "G3n3r0l & C01t0",
+      duration: "--:--",
+      src: "assets/tracks/kunglao.mp3",
+    },
+
+    {
+      title: "3x1rañ0",
+      artist: "@L3luy0",
+      duration: "--:--",
+      src: "assets/tracks/preview aleluya.mp3.mp3",
     },
   ],
 };
@@ -96,9 +104,19 @@ const state = {
     trash:       { open: false, minimized: false, maximized: false, zIndex: 20 },
     reproductor: { open: false, minimized: false, maximized: false, zIndex: 20 },
     juego:       { open: false, minimized: false, maximized: false, zIndex: 21 },
+    galeria:     { open: false, minimized: false, maximized: false, zIndex: 22 },
+    boletas:     { open: false, minimized: false, maximized: false, zIndex: 23 },
   },
   startMenuOpen: false,
 };
+
+function getCensoredTrackTitle(track, index = state.currentIndex) {
+  const trackNumber = Number.isFinite(index) && index >= 0
+    ? String(index + 1).padStart(2, "0")
+    : "--";
+  // Devuelve el título real; la censura visual se aplica vía clase CSS 'censored'
+  return track && track.title ? track.title : `PISTA ${trackNumber}`;
+}
 
 const el = {
   appShell:          document.getElementById("app-shell"),
@@ -122,6 +140,8 @@ const el = {
     trash: document.getElementById("window-trash"),
     reproductor: document.getElementById("window-reproductor"),
     juego: document.getElementById("window-juego"),
+    galeria: document.getElementById("window-galeria"),
+    boletas: document.getElementById("window-boletas"),
   },
   mainStage:         document.getElementById("main-stage"),
   playlistPanel:     document.getElementById("playlist-panel"),
@@ -149,7 +169,6 @@ const el = {
   volumeBar:         document.getElementById("volume-bar"),
   shuffleButton:     document.getElementById("shuffle-button"),
   repeatButton:      document.getElementById("repeat-button"),
-  gameProgramFrame:  document.getElementById("game-program-frame"),
 };
 
 function init() {
@@ -435,6 +454,9 @@ function bindEvents() {
     if (!(event.target instanceof Node)) return;
     if (el.startButton?.contains(event.target) || el.startMenu?.contains(event.target)) return;
     closeStartMenu();
+    if (!(event.target instanceof Element) || !event.target.closest("[data-game-id]")) {
+      clearGameSelection();
+    }
   });
 
   document.addEventListener("mousemove", handleWindowDragMove);
@@ -566,10 +588,6 @@ function openProgram(program) {
   const windowElement = el.windows[program];
   if (!windowState || !(windowElement instanceof HTMLElement)) return;
 
-  if (program === "juego" && el.gameProgramFrame && !el.gameProgramFrame.src) {
-    el.gameProgramFrame.src = resolveAssetPath(el.gameProgramFrame.dataset.src || albumConfig.game.htmlSrc);
-  }
-
   if (isPhoneDevice()) {
     windowState.maximized = !isPortraitOrientation();
   }
@@ -668,9 +686,13 @@ function syncWindowPresentation(program) {
   const maximizeButton = document.querySelector(`[data-window-action="maximize"][data-window-target="${program}"]`);
   const programLabel = program === "juego"
     ? "juego"
-    : program === "trash"
-      ? "trash"
-      : "reproductor";
+    : program === "galeria"
+      ? "galeria"
+      : program === "boletas"
+        ? "boletas"
+        : program === "trash"
+          ? "trash"
+          : "preview";
 
   if (!windowState || !(windowElement instanceof HTMLElement)) return;
 
@@ -749,7 +771,9 @@ function getFocusedProgram() {
 
 function getDefaultSelectionId(program) {
   if (program === "trash") return "trash-empty-state";
-  if (program === "juego") return "game-close";
+  if (program === "juego") return "game-coming-soon";
+  if (program === "galeria") return "gallery-coming-soon";
+  if (program === "boletas") return "tickets-coming-soon";
 
   if (state.panelView === "reproductor") {
     return state.playlist.length ? `playlist-${state.currentIndex}` : "transport-play";
@@ -774,7 +798,7 @@ function buildSpectrum() {
 }
 
 function renderPlayerPanel() {
-  el.panelLabel.textContent = "▼ REPRODUCTOR";
+  el.panelLabel.textContent = "▼ PREVIEW";
   el.panelHeaderTitle.textContent = "▶ LISTA DE PISTAS";
   el.panelFooterLabel.textContent = "TIEMPO:";
   el.panelFooterValue.textContent = getPlaylistTotal();
@@ -804,9 +828,11 @@ function renderPlayerPanel() {
     const row = document.createElement("div");
     row.className = "playlist-row";
 
-    const title = document.createElement("span");
-    title.className = "playlist-title";
-    title.textContent = `${index + 1}. ${track.title}`;
+  const title = document.createElement("span");
+  title.className = "playlist-title";
+  // aplicar desenfoque visual en lugar de reemplazar el texto
+  title.classList.add("censored");
+  title.textContent = `${index + 1}. ${getCensoredTrackTitle(track, index)}`;
 
     const duration = document.createElement("span");
     duration.className = "playlist-duration";
@@ -889,9 +915,7 @@ function renderCreditsWindow() {
 }
 
 function renderArtworksWindow() {
-  const artworks = albumConfig.artworks.length
-    ? albumConfig.artworks
-    : [{ title: "Portada principal", image: albumConfig.artwork, note: "Portada fija del álbum" }];
+  const artworks = Array.isArray(albumConfig.artworks) ? albumConfig.artworks : [];
 
   el.contentWindowKicker.textContent = "SECCIÓN";
   el.contentWindowTitle.textContent = "ARTE";
@@ -900,6 +924,27 @@ function renderArtworksWindow() {
 
   const grid = document.createElement("div");
   grid.className = "content-grid content-grid-artworks";
+
+  if (!artworks.length) {
+    const card = document.createElement("article");
+    card.className = "content-card artwork-window-card game-target";
+    card.dataset.gameId = "artwork-empty";
+    card.tabIndex = -1;
+
+    const heading = document.createElement("h3");
+    heading.className = "content-card-title";
+    heading.textContent = "SIN ARTE";
+
+    const text = document.createElement("p");
+    text.className = "content-card-text";
+    text.textContent = "No hay piezas cargadas.";
+
+    card.append(heading, text);
+    grid.appendChild(card);
+    el.contentWindowBody.appendChild(grid);
+    syncGameSelection();
+    return;
+  }
 
   artworks.forEach((artwork, index) => {
     const card = document.createElement("article");
@@ -1105,14 +1150,13 @@ function renderGameWindow() {
   const shell = document.createElement("div");
   shell.className = "game-shell";
 
-  const frame = document.createElement("iframe");
-  frame.className = "game-frame";
-  frame.src = resolveAssetPath(albumConfig.game.htmlSrc);
-  frame.title = "Juego DRACOMANIA";
-  frame.loading = "eager";
-  frame.setAttribute("allow", "autoplay");
+  const message = document.createElement("div");
+  message.className = "coming-soon-panel game-target";
+  message.dataset.gameId = "nav-game-coming-soon";
+  message.tabIndex = -1;
+  message.innerHTML = "<span>COMING SOON</span>";
 
-  shell.appendChild(frame);
+  shell.appendChild(message);
   el.contentWindowBody.appendChild(shell);
   syncGameSelection("nav-juego");
 }
@@ -1125,8 +1169,10 @@ async function selectTrack(index, autoPlay = false) {
   }
 
   state.currentIndex = index;
-  el.trackName.textContent = track.title;
-  el.panelTrackTitle.textContent = track.title;
+  el.trackName.textContent = getCensoredTrackTitle(track, index);
+  el.trackName.classList.add("censored");
+  el.panelTrackTitle.textContent = getCensoredTrackTitle(track, index);
+  el.panelTrackTitle.classList.add("censored");
   el.panelTrackArtist.textContent = track.artist || albumConfig.artist;
 
   if (track.src) {
@@ -1241,7 +1287,7 @@ function handleTrackError() {
   const track = state.playlist[state.currentIndex];
   updateTransportState("✕ TRACK ERROR");
   console.error("No se pudo cargar el track", {
-    title: track?.title,
+    title: getCensoredTrackTitle(track, state.currentIndex),
     src: track?.src,
     resolvedSrc: el.audio.currentSrc,
     errorCode,
@@ -1556,7 +1602,6 @@ function syncGameTargetListeners() {
     if (!(target instanceof HTMLElement) || target.dataset.gameBound === "true") return;
 
     target.dataset.gameBound = "true";
-    target.addEventListener("mouseenter", () => setGameSelection(target, false));
     target.addEventListener("focus", () => setGameSelection(target, false));
     target.addEventListener("click", () => setGameSelection(target, false));
   });
@@ -1567,7 +1612,7 @@ function syncGameSelection(preferredId = state.gameTargetId) {
 
   const visibleTargets = getVisibleGameTargets();
   if (!visibleTargets.length) {
-    state.gameTargetId = null;
+    clearGameSelection();
     return;
   }
 
@@ -1596,6 +1641,13 @@ function setGameSelection(target, shouldScroll = true) {
       inline: "nearest",
     });
   }
+}
+
+function clearGameSelection() {
+  document.querySelectorAll(".game-selected").forEach(selected => {
+    selected.classList.remove("game-selected");
+  });
+  state.gameTargetId = null;
 }
 
 function findVisibleGameTargetById(targetId) {
