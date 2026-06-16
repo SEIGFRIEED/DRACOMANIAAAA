@@ -108,6 +108,7 @@ const state = {
   storyVoiceDuration: "--:--",
   startupAudio: null,
   startupPlayed: false,
+  startupPending: false,
   bootStarted: false,
   bootComplete: false,
   nextWindowZ:  20,
@@ -381,6 +382,10 @@ function wait(duration) {
 }
 
 function bindEvents() {
+  ["pointerdown", "touchend", "keydown"].forEach(eventName => {
+    document.addEventListener(eventName, retryPendingStartupSound, { passive: true });
+  });
+
   document.querySelectorAll("[data-action]").forEach(btn => {
     btn.addEventListener("click", async () => {
       const action = btn.dataset.action;
@@ -1360,15 +1365,17 @@ function startVisualizer() {
 }
 
 function applyPlayerVisuals() {
-  el.coverArt.style.removeProperty("background-image");
-  el.coverArt.classList.remove("has-image");
-  el.coverArt.classList.add("has-visual");
-
   if (albumConfig.artwork) {
     const artworkPath = resolveAssetPath(albumConfig.artwork);
+    el.coverArt.style.backgroundImage = `url("${artworkPath}")`;
+    el.coverArt.classList.add("has-image");
+    el.coverArt.classList.remove("has-visual");
     el.miniCoverImage.src = artworkPath;
     el.miniCover.hidden = false;
   } else {
+    el.coverArt.style.removeProperty("background-image");
+    el.coverArt.classList.remove("has-image");
+    el.coverArt.classList.add("has-visual");
     el.miniCoverImage.removeAttribute("src");
     el.miniCover.hidden = true;
   }
@@ -1416,14 +1423,21 @@ function playStartupSound() {
   if (!state.startupAudio || state.startupPlayed) return;
 
   state.startupPlayed = true;
+  state.startupPending = false;
   state.startupAudio.currentTime = 0;
 
   const playPromise = state.startupAudio.play();
   if (playPromise?.catch) {
     playPromise.catch(() => {
-      // Some browsers block audio before user interaction; the desktop still opens normally.
+      state.startupPlayed = false;
+      state.startupPending = true;
     });
   }
+}
+
+function retryPendingStartupSound() {
+  if (!state.startupPending || state.startupPlayed) return;
+  playStartupSound();
 }
 
 function resolveAssetPath(path) {

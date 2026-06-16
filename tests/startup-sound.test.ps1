@@ -27,12 +27,28 @@ if ($script -notmatch 'startupPlayed:\s*false') {
   throw "Expected startup sound to be guarded so it only plays once"
 }
 
+if ($script -notmatch 'startupPending:\s*false') {
+  throw "Expected blocked startup sound to be tracked for retry"
+}
+
 if ($script -notmatch 'function initStartupSound\(\)[\s\S]*new Audio\(resolveAssetPath\(albumConfig\.startupSound\.src\)\)[\s\S]*audio\.volume = albumConfig\.startupSound\.volume') {
   throw "Expected initStartupSound() to create a separate low-volume Audio instance"
 }
 
-if ($script -notmatch 'function playStartupSound\(\)[\s\S]*state\.startupPlayed = true[\s\S]*playPromise\.catch') {
-  throw "Expected playStartupSound() to mark the sound as played and tolerate blocked playback"
+if ($script -notmatch 'function playStartupSound\(\)[\s\S]*state\.startupPlayed = true[\s\S]*state\.startupPending = false[\s\S]*playPromise\.catch[\s\S]*state\.startupPlayed = false[\s\S]*state\.startupPending = true') {
+  throw "Expected playStartupSound() to mark attempts and retry later when playback is blocked"
+}
+
+if ($script -notmatch 'function retryPendingStartupSound\(\)[\s\S]*state\.startupPending[\s\S]*playStartupSound\(\);') {
+  throw "Expected retryPendingStartupSound() to replay blocked startup audio on user interaction"
+}
+
+if ($script -notmatch 'document\.addEventListener\(eventName, retryPendingStartupSound') {
+  throw "Expected user interactions to retry pending startup sound"
+}
+
+if ($script -notmatch 'function applyPlayerVisuals\(\)[\s\S]*el\.coverArt\.style\.backgroundImage = `url\("\$\{artworkPath\}"\)`;[\s\S]*el\.coverArt\.classList\.add\("has-image"\)') {
+  throw "Expected the main cover stage to use albumConfig.artwork"
 }
 
 $launchBootSequenceMatch = [regex]::Match($script, 'async function launchBootSequence\(\) \{(?<body>[\s\S]*?)\n\}')
