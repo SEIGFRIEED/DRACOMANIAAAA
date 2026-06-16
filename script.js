@@ -1,7 +1,7 @@
 const albumConfig = {
   artist: "DRACOMANIA",
   title: "DRACOMANIA",
-  artwork: "",
+  artwork: "assets/portada/dracomania-cover-art.jpeg",
   story: {
     title: "Historia",
     prompt: "Elige como quieres recibir la senal.",
@@ -39,10 +39,16 @@ const albumConfig = {
     creador: ["@dracopulsee"],
     artistas: ["@3stasyyy", "@kanno", "@santo"],
     productores: ["@tecnice", "@dravenn", "@atlzage", "@chimionthebeat", "@deadboyelie"],
-    disenadores: ["@seig.psd"],
-    directoresDeArte: ["@dracopulsee", "@seig.psd"]
+    disenadores: ["@seig.psd", "@pulserodd"],
+    directoresDeArte: ["@dracopulsee", "@seig.psd", "@pulserodd"]
   },
-  artworks: [],
+  artworks: [
+    {
+      title: "Portada principal",
+      image: "assets/portada/dracomania-cover-art.jpeg",
+      note: "Arte de portada",
+    },
+  ],
   tracks: [
     {
       title: "INTRO",
