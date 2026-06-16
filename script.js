@@ -31,6 +31,10 @@ const albumConfig = {
       "La DracoMania no tiene un proposito definido, pero sigue expandiendose.",
     ],
   },
+  startupSound: {
+    src: "assets/system/startup.m4a",
+    volume: 0.18,
+  },
   game: {
     title: "Juego",
     htmlSrc: "juego.html",
@@ -102,6 +106,8 @@ const state = {
   storyVoiceStatus: "idle",
   storyVoiceTime: "00:00",
   storyVoiceDuration: "--:--",
+  startupAudio: null,
+  startupPlayed: false,
   bootStarted: false,
   bootComplete: false,
   nextWindowZ:  20,
@@ -184,6 +190,7 @@ function init() {
   el.audio.volume = Number(el.volumeBar.value);
   applyPlayerVisuals();
   initStoryVoiceover();
+  initStartupSound();
   buildSpectrum();
   bindEvents();
   if (state.playlist.length) {
@@ -239,6 +246,7 @@ async function runBootSequence() {
 
 function revealDesktop() {
   state.bootComplete = true;
+  playStartupSound();
   el.appShell.hidden = false;
   updateOrientationGate();
   syncGameSelection("desktop-reproductor");
@@ -1392,6 +1400,30 @@ function initStoryVoiceover() {
   });
 
   state.storyAudio = audio;
+}
+
+function initStartupSound() {
+  if (!albumConfig.startupSound?.src) return;
+
+  const audio = new Audio(resolveAssetPath(albumConfig.startupSound.src));
+  audio.preload = "auto";
+  audio.volume = albumConfig.startupSound.volume;
+
+  state.startupAudio = audio;
+}
+
+function playStartupSound() {
+  if (!state.startupAudio || state.startupPlayed) return;
+
+  state.startupPlayed = true;
+  state.startupAudio.currentTime = 0;
+
+  const playPromise = state.startupAudio.play();
+  if (playPromise?.catch) {
+    playPromise.catch(() => {
+      // Some browsers block audio before user interaction; the desktop still opens normally.
+    });
+  }
 }
 
 function resolveAssetPath(path) {
