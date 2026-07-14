@@ -1,7 +1,7 @@
 const albumConfig = {
   artist: "DRACOMANIA",
   title: "DRACOMANIA",
-  artwork: "assets/portada/dracomania-cover-art.jpeg",
+  artwork: "assets/portada/dracomania final cover.png",
   story: {
     title: "Historia",
     prompt: "Elige como quieres recibir la senal.",
@@ -49,9 +49,15 @@ const albumConfig = {
   artworks: [
     {
       title: "Portada principal",
-      image: "assets/portada/dracomania-cover-art.jpeg",
+      image: "assets/portada/dracomania final cover.png",
       note: "Arte de portada",
     },
+  ],
+  doodles: [
+    { image: "assets/doodles/new-patch.svg", size: "clamp(90px, 18vmin, 140px)", alt: "Nuevo parche" },
+    /* Ejemplo adicional:
+    { image: 'assets/doodles/doodle1.png', x: '30%', y: '40%', tilt: '-4deg', size: 'clamp(120px, 24vmin, 220px)'}
+    */
   ],
   tracks: [
     {
@@ -61,10 +67,10 @@ const albumConfig = {
       src: "assets/tracks/intro.mp3",
     },
     {
-      title: "B1E3D1N0",
+      title: "vo1tic",
       artist: "3st",
       duration: "--:--",
-      src: "assets/tracks/bleedin preview.wav",
+      src: "assets/tracks/voltic 8bit.wav",
     },
     {
       title: "S0b34r",
@@ -81,13 +87,44 @@ const albumConfig = {
     },
 
     {
-      title: "3x1rañ0",
+      title: "v1rg1l",
       artist: "@L3luy0",
       duration: "--:--",
       src: "assets/tracks/preview aleluya.mp3.mp3",
     },
+
+    {
+      title: "t3 pi3n2o",
+      artist: "@l3sit0",
+      duration: "--:--",
+      src: "assets/tracks/te pienso-8bit.wav",
+    },
+
+    {
+      title: "M",
+      artist: "Lu1g1",
+      duration: "--:--",
+      src: "assets/tracks/M LUIGI - 8BIT.wav",
+    },
+
+    {
+      title: "n@k1n@",
+      artist: "d1f3n",
+      duration: "--:--",
+      src: "assets/tracks/nakina 8bit.wav",
+    },
+
+    {
+      title: "d3c0n3ta0",
+      artist: "eriy1",
+      duration: "--:--",
+      src: "assets/tracks/deconetao-8bit.wav",
+    },
+
   ],
 };
+
+const STORE_SHIPPING_FEE = 400;
 
 const state = {
   playlist:      albumConfig.tracks.map(track => ({ ...track })),
@@ -109,6 +146,8 @@ const state = {
   startupAudio: null,
   startupPlayed: false,
   startupPending: false,
+  storeBag: [],
+  storeNextCartId: 1,
   bootStarted: false,
   bootComplete: false,
   nextWindowZ:  20,
@@ -119,6 +158,7 @@ const state = {
     juego:       { open: false, minimized: false, maximized: false, zIndex: 21 },
     galeria:     { open: false, minimized: false, maximized: false, zIndex: 22 },
     boletas:     { open: false, minimized: false, maximized: false, zIndex: 23 },
+    tienda:      { open: false, minimized: false, maximized: false, zIndex: 24 },
   },
   startMenuOpen: false,
 };
@@ -155,7 +195,19 @@ const el = {
     juego: document.getElementById("window-juego"),
     galeria: document.getElementById("window-galeria"),
     boletas: document.getElementById("window-boletas"),
+    tienda: document.getElementById("window-tienda"),
   },
+  storeBagList:      document.getElementById("store-bag-list"),
+  storeBagCount:     document.getElementById("store-bag-count"),
+  storeShipping:     document.getElementById("store-shipping"),
+  storeTotal:        document.getElementById("store-total"),
+  storeRegisterTotal: document.getElementById("store-register-total"),
+  storeCheckoutButton: document.getElementById("store-checkout-button"),
+  storeCheckoutModal: document.getElementById("store-checkout-modal"),
+  storeCheckoutForm: document.getElementById("store-checkout-form"),
+  storeCheckoutError: document.getElementById("store-checkout-error"),
+  storeCheckoutClose: document.getElementById("store-checkout-close"),
+  storeCheckoutCancel: document.getElementById("store-checkout-cancel"),
   mainStage:         document.getElementById("main-stage"),
   playlistPanel:     document.getElementById("playlist-panel"),
   contentWindow:     document.getElementById("content-window"),
@@ -203,8 +255,10 @@ function init() {
   setPanelView("reproductor");
   tickClock();
   renderTaskbarPrograms();
+  renderStoreBag();
   startVisualizer();
   updateOrientationGate();
+  renderGalleryPatchWall();
   void startExperience();
 }
 
@@ -381,6 +435,389 @@ function wait(duration) {
   });
 }
 
+function bindStoreEvents() {
+  document.querySelectorAll("[data-store-add]").forEach(button => {
+    button.addEventListener("click", () => {
+      addStoreProduct(button.dataset.storeAdd);
+    });
+  });
+
+  el.storeBagList?.addEventListener("click", event => {
+    if (!(event.target instanceof Element)) return;
+
+    const removeButton = event.target.closest("[data-store-remove]");
+    if (removeButton instanceof HTMLElement) {
+      removeStoreItem(Number(removeButton.dataset.storeRemove));
+      return;
+    }
+
+    const quantityButton = event.target.closest("[data-store-qty-action]");
+    if (!(quantityButton instanceof HTMLElement)) return;
+
+    const cartId = Number(quantityButton.dataset.storeQtyCart);
+    const action = quantityButton.dataset.storeQtyAction;
+    const item = state.storeBag.find(cartItem => cartItem.cartId === cartId);
+    if (!item) return;
+
+    const nextQuantity = action === "increase"
+      ? item.quantity + 1
+      : item.quantity - 1;
+    changeStoreItemQuantity(cartId, nextQuantity);
+  });
+
+  el.storeBagList?.addEventListener("change", event => {
+    if (!(event.target instanceof HTMLSelectElement)) return;
+    if (!event.target.matches("[data-store-size]")) return;
+
+    changeStoreItemSize(Number(event.target.dataset.storeSize), event.target.value);
+  });
+
+  el.storeBagList?.addEventListener("input", event => {
+    if (!(event.target instanceof HTMLInputElement)) return;
+    if (!event.target.matches("[data-store-quantity]")) return;
+
+    changeStoreItemQuantity(Number(event.target.dataset.storeQuantity), Number(event.target.value), { keepFocus: true });
+  });
+
+  el.storeCheckoutButton?.addEventListener("click", openStoreCheckout);
+  el.storeCheckoutClose?.addEventListener("click", closeStoreCheckout);
+  el.storeCheckoutCancel?.addEventListener("click", closeStoreCheckout);
+  el.storeCheckoutForm?.addEventListener("submit", handleStoreCheckoutSubmit);
+}
+
+function getStoreProduct(productId) {
+  return Array.from(document.querySelectorAll("[data-store-product]"))
+    .find(product => product instanceof HTMLElement && product.dataset.storeProduct === productId);
+}
+
+function getStoreProductSizes(product) {
+  return String(product.dataset.storeSizes || "S,M,L,XL")
+    .split(",")
+    .map(size => size.trim())
+    .filter(Boolean);
+}
+
+function addStoreProduct(productId) {
+  const product = getStoreProduct(productId);
+  if (!(product instanceof HTMLElement)) return;
+
+  const price = Number(product.dataset.storePrice);
+  if (!Number.isFinite(price)) return;
+
+  const sizes = getStoreProductSizes(product);
+  const size = sizes[0] || "M";
+  const existingItem = state.storeBag.find(item => item.productId === productId && item.size === size);
+
+  if (existingItem) {
+    existingItem.quantity = clampStoreQuantity(existingItem.quantity + 1);
+    renderStoreBag();
+    return;
+  }
+
+  state.storeBag.push({
+    cartId: state.storeNextCartId,
+    productId,
+    name: product.dataset.storeName || "PRODUCTO",
+    price,
+    quantity: 1,
+    size,
+    sizes,
+  });
+  state.storeNextCartId += 1;
+
+  renderStoreBag();
+}
+
+function removeStoreItem(cartId) {
+  state.storeBag = state.storeBag.filter(item => item.cartId !== cartId);
+  renderStoreBag();
+  syncGameSelection("store-window-main");
+}
+
+function changeStoreItemSize(cartId, nextSize) {
+  const item = state.storeBag.find(cartItem => cartItem.cartId === cartId);
+  if (!item || !item.sizes.includes(nextSize)) return;
+
+  item.size = nextSize;
+  renderStoreBag();
+}
+
+function changeStoreItemQuantity(cartId, nextQuantity, options = {}) {
+  const item = state.storeBag.find(cartItem => cartItem.cartId === cartId);
+  if (!item) return;
+
+  item.quantity = clampStoreQuantity(nextQuantity);
+  renderStoreBag();
+
+  if (options.keepFocus) {
+    const quantityInput = el.storeBagList?.querySelector(`[data-store-quantity="${cartId}"]`);
+    if (quantityInput instanceof HTMLInputElement) {
+      quantityInput.focus();
+      quantityInput.select();
+    }
+  }
+}
+
+function clampStoreQuantity(value) {
+  const quantity = Number.parseInt(value, 10);
+  if (!Number.isFinite(quantity)) return 1;
+  return Math.min(Math.max(quantity, 1), 99);
+}
+
+function getStoreItemCount() {
+  return state.storeBag.reduce((sum, item) => sum + clampStoreQuantity(item.quantity), 0);
+}
+
+function getStoreSubtotal() {
+  return state.storeBag.reduce((sum, item) => {
+    return sum + (Number(item.price) || 0) * clampStoreQuantity(item.quantity);
+  }, 0);
+}
+
+function getStoreShipping() {
+  return getStoreItemCount() > 0 ? STORE_SHIPPING_FEE : 0;
+}
+
+function getStoreTotal() {
+  return getStoreSubtotal() + getStoreShipping();
+}
+
+function formatStoreMoney(value, options = {}) {
+  const amount = Number(value) || 0;
+  const digits = options.cents ? 2 : 0;
+  return `RD$${amount.toLocaleString("en-US", {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  })}`;
+}
+
+function renderStoreBag() {
+  if (!el.storeBagList || !el.storeBagCount || !el.storeTotal || !el.storeRegisterTotal) return;
+
+  const itemCount = getStoreItemCount();
+  const shipping = getStoreShipping();
+  const total = getStoreTotal();
+  el.storeBagCount.textContent = `${itemCount} ${itemCount === 1 ? "ITEM" : "ITEMS"}`;
+  if (el.storeShipping) el.storeShipping.textContent = formatStoreMoney(shipping);
+  el.storeTotal.textContent = formatStoreMoney(total);
+  el.storeRegisterTotal.textContent = formatStoreMoney(total, { cents: true });
+
+  if (el.storeCheckoutButton instanceof HTMLButtonElement) {
+    el.storeCheckoutButton.disabled = itemCount === 0;
+  }
+
+  if (!itemCount) closeStoreCheckout();
+
+  el.storeBagList.innerHTML = "";
+
+  if (!itemCount) {
+    const emptyItem = document.createElement("li");
+    emptyItem.className = "store-bag-empty";
+    emptyItem.textContent = "BOLSA VACIA";
+    el.storeBagList.appendChild(emptyItem);
+    return;
+  }
+
+  state.storeBag.forEach(item => {
+    const lineItem = document.createElement("li");
+    lineItem.className = "store-bag-item";
+
+    const itemMain = document.createElement("div");
+    itemMain.className = "store-bag-main";
+
+    const copy = document.createElement("span");
+    copy.className = "store-bag-name";
+    copy.textContent = item.name;
+
+    const price = document.createElement("strong");
+    price.textContent = formatStoreMoney(item.price * clampStoreQuantity(item.quantity));
+
+    itemMain.append(copy, price);
+
+    const options = document.createElement("div");
+    options.className = "store-bag-options";
+
+    const sizeLabel = document.createElement("label");
+    sizeLabel.className = "store-bag-field";
+    const sizeCaption = document.createElement("span");
+    sizeCaption.textContent = "TALLA";
+    const sizeSelect = document.createElement("select");
+    sizeSelect.className = "store-size-select";
+    sizeSelect.dataset.storeSize = String(item.cartId);
+    item.sizes.forEach(size => {
+      const option = document.createElement("option");
+      option.value = size;
+      option.textContent = size;
+      option.selected = size === item.size;
+      sizeSelect.appendChild(option);
+    });
+    sizeLabel.append(sizeCaption, sizeSelect);
+
+    const quantityLabel = document.createElement("label");
+    quantityLabel.className = "store-bag-field";
+    const quantityCaption = document.createElement("span");
+    quantityCaption.textContent = "CANT";
+
+    const quantityControl = document.createElement("div");
+    quantityControl.className = "store-qty-control";
+
+    const decreaseButton = document.createElement("button");
+    decreaseButton.className = "store-qty-button game-target";
+    decreaseButton.type = "button";
+    decreaseButton.dataset.storeQtyAction = "decrease";
+    decreaseButton.dataset.storeQtyCart = String(item.cartId);
+    decreaseButton.dataset.gameId = `store-qty-minus-${item.cartId}`;
+    decreaseButton.setAttribute("aria-label", `Bajar cantidad de ${item.name}`);
+    decreaseButton.textContent = "-";
+
+    const quantityInput = document.createElement("input");
+    quantityInput.className = "store-qty-input";
+    quantityInput.type = "number";
+    quantityInput.min = "1";
+    quantityInput.max = "99";
+    quantityInput.inputMode = "numeric";
+    quantityInput.value = String(clampStoreQuantity(item.quantity));
+    quantityInput.dataset.storeQuantity = String(item.cartId);
+    quantityInput.setAttribute("aria-label", `Cantidad de ${item.name}`);
+
+    const increaseButton = document.createElement("button");
+    increaseButton.className = "store-qty-button game-target";
+    increaseButton.type = "button";
+    increaseButton.dataset.storeQtyAction = "increase";
+    increaseButton.dataset.storeQtyCart = String(item.cartId);
+    increaseButton.dataset.gameId = `store-qty-plus-${item.cartId}`;
+    increaseButton.setAttribute("aria-label", `Subir cantidad de ${item.name}`);
+    increaseButton.textContent = "+";
+
+    quantityControl.append(decreaseButton, quantityInput, increaseButton);
+    quantityLabel.append(quantityCaption, quantityControl);
+    options.append(sizeLabel, quantityLabel);
+
+    const removeButton = document.createElement("button");
+    removeButton.className = "store-remove-button game-target";
+    removeButton.type = "button";
+    removeButton.dataset.storeRemove = String(item.cartId);
+    removeButton.dataset.gameId = `store-remove-${item.cartId}`;
+    removeButton.setAttribute("aria-label", `Quitar ${item.name} del carrito`);
+    removeButton.textContent = "QUITAR";
+
+    lineItem.append(itemMain, options, removeButton);
+    el.storeBagList.appendChild(lineItem);
+  });
+
+  syncGameTargetListeners();
+}
+
+function openStoreCheckout() {
+  if (!el.storeCheckoutModal || !el.storeCheckoutForm || getStoreItemCount() === 0) return;
+
+  el.storeCheckoutForm.reset();
+  clearStoreCheckoutValidation();
+  el.storeCheckoutModal.hidden = false;
+
+  window.setTimeout(() => {
+    const nameInput = getCheckoutField("name");
+    if (nameInput instanceof HTMLInputElement) nameInput.focus();
+  }, 0);
+}
+
+function closeStoreCheckout() {
+  if (!el.storeCheckoutModal) return;
+
+  el.storeCheckoutModal.hidden = true;
+  clearStoreCheckoutValidation();
+  if (el.storeCheckoutButton instanceof HTMLButtonElement && !el.storeCheckoutButton.disabled) {
+    el.storeCheckoutButton.focus();
+  }
+}
+
+function handleStoreCheckoutSubmit(event) {
+  event.preventDefault();
+  if (!el.storeCheckoutForm) return;
+
+  const formData = new FormData(el.storeCheckoutForm);
+  const customer = {
+    name: String(formData.get("name") || "").trim(),
+    email: String(formData.get("email") || "").trim(),
+    phone: String(formData.get("phone") || "").trim(),
+    address: String(formData.get("address") || "").trim(),
+    city: String(formData.get("city") || "").trim(),
+    country: String(formData.get("country") || "").trim(),
+    zip: String(formData.get("zip") || "").trim(),
+  };
+  const paymentMethod = String(formData.get("paymentMethod") || "").trim();
+
+  if (!validateStoreCheckout(customer, paymentMethod)) {
+    setStoreCheckoutError(true);
+    return;
+  }
+
+  const cart = state.storeBag.map(item => ({
+    productId: item.productId,
+    name: item.name,
+    size: item.size,
+    quantity: clampStoreQuantity(item.quantity),
+    unitPrice: item.price,
+    total: item.price * clampStoreQuantity(item.quantity),
+  }));
+  const total = getStoreTotal();
+  const order = {
+    customer,
+    items: cart,
+    subtotal: getStoreSubtotal(),
+    shipping: getStoreShipping(),
+    total,
+    paymentMethod,
+    status: "Pending",
+    createdAt: new Date(),
+  };
+
+  console.log(order);
+  closeStoreCheckout();
+}
+
+function validateStoreCheckout(customer, paymentMethod) {
+  clearStoreCheckoutValidation();
+
+  const invalidFields = [];
+  if (!customer.name) invalidFields.push("name");
+  if (!isValidStoreEmail(customer.email)) invalidFields.push("email");
+  if (!customer.address) invalidFields.push("address");
+  if (!paymentMethod) invalidFields.push("paymentMethod");
+
+  invalidFields.forEach(fieldName => {
+    if (fieldName === "paymentMethod") {
+      document.querySelector(".store-payment-fieldset")?.classList.add("is-invalid");
+      return;
+    }
+
+    const field = getCheckoutField(fieldName);
+    field?.classList.add("is-invalid");
+  });
+
+  return invalidFields.length === 0;
+}
+
+function getCheckoutField(fieldName) {
+  return el.storeCheckoutForm?.elements.namedItem(fieldName) || null;
+}
+
+function isValidStoreEmail(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+function clearStoreCheckoutValidation() {
+  setStoreCheckoutError(false);
+  el.storeCheckoutForm?.querySelectorAll(".is-invalid").forEach(field => {
+    field.classList.remove("is-invalid");
+  });
+}
+
+function setStoreCheckoutError(isVisible) {
+  if (!el.storeCheckoutError) return;
+  el.storeCheckoutError.hidden = !isVisible;
+}
+
 function bindEvents() {
   ["pointerdown", "touchend", "keydown"].forEach(eventName => {
     document.addEventListener(eventName, retryPendingStartupSound, { passive: true });
@@ -421,6 +858,8 @@ function bindEvents() {
   el.navItems.forEach(btn => {
     btn.addEventListener("click", () => setPanelView(btn.dataset.panel));
   });
+
+  bindStoreEvents();
 
   el.programLaunchers.forEach(button => {
     button.addEventListener("click", () => {
@@ -709,9 +1148,11 @@ function syncWindowPresentation(program) {
       ? "galeria"
       : program === "boletas"
         ? "boletas"
-        : program === "trash"
-          ? "trash"
-          : "preview";
+        : program === "tienda"
+          ? "tienda"
+          : program === "trash"
+            ? "trash"
+            : "preview";
 
   if (!windowState || !(windowElement instanceof HTMLElement)) return;
 
@@ -791,8 +1232,9 @@ function getFocusedProgram() {
 function getDefaultSelectionId(program) {
   if (program === "trash") return "trash-empty-state";
   if (program === "juego") return "game-coming-soon";
-  if (program === "galeria") return "gallery-coming-soon";
+  if (program === "galeria") return "gallery-patch-wall";
   if (program === "boletas") return "tickets-coming-soon";
+  if (program === "tienda") return "store-window-main";
 
   if (state.panelView === "reproductor") {
     return state.playlist.length ? `playlist-${state.currentIndex}` : "transport-play";
@@ -931,6 +1373,36 @@ function renderCreditsWindow() {
 
   el.contentWindowBody.appendChild(stack);
   syncGameSelection();
+}
+
+function renderGalleryPatchWall() {
+  const patchWall = document.querySelector(".gallery-patch-wall");
+  if (!patchWall) return;
+
+  Array.from(patchWall.querySelectorAll(".gallery-patch-doodle")).forEach(node => node.remove());
+  patchWall.classList.add("gallery-patch-grid");
+
+  const doodles = Array.isArray(albumConfig.doodles)
+    ? albumConfig.doodles.filter(doodle => doodle && doodle.image)
+    : [];
+
+  doodles.forEach((doodle, index) => {
+    const fig = document.createElement("figure");
+    fig.className = "gallery-patch gallery-patch-doodle";
+    fig.setAttribute("aria-label", doodle.label || `Parche extra ${index + 1}`);
+
+    if (doodle.size) {
+      fig.style.setProperty("--patch-size", doodle.size);
+    }
+
+    const img = document.createElement("img");
+    img.className = "gallery-patch-photo";
+    img.src = resolveAssetPath(doodle.image);
+    img.alt = doodle.alt || "";
+
+    fig.appendChild(img);
+    patchWall.appendChild(fig);
+  });
 }
 
 function renderArtworksWindow() {
@@ -1605,7 +2077,7 @@ function bindGameNavigation() {
 
 function handleGameKeydown(event) {
   if (event.altKey || event.ctrlKey || event.metaKey) return;
-  if (event.target instanceof HTMLElement && event.target.matches('input[type="range"]')) return;
+  if (event.target instanceof HTMLElement && (event.target.matches("input, select, textarea") || event.target.isContentEditable)) return;
 
   const command = normalizeGameCommand(event.key);
   if (!command) return;

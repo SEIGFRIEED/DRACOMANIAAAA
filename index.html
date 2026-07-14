@@ -91,6 +91,16 @@
           <span class="desktop-icon-art icon-boletas" aria-hidden="true"></span>
           <span class="desktop-icon-label">BOLETAS</span>
         </button>
+
+        <button
+          class="desktop-icon game-target"
+          data-program-launch="tienda"
+          data-game-id="desktop-tienda"
+          type="button"
+        >
+          <span class="desktop-icon-art icon-store" aria-hidden="true"></span>
+          <span class="desktop-icon-label">TIENDA</span>
+        </button>
       </nav>
 
       <footer class="desktop-taskbar-shell">
@@ -124,6 +134,11 @@
               <button class="start-menu-item game-target" data-start-launch="boletas" data-game-id="start-boletas" type="button">
                 <span class="start-menu-item-art icon-boletas" aria-hidden="true"></span>
                 <span>DRACOMANIA BOLETAS</span>
+              </button>
+
+              <button class="start-menu-item game-target" data-start-launch="tienda" data-game-id="start-tienda" type="button">
+                <span class="start-menu-item-art icon-store" aria-hidden="true"></span>
+                <span>DRACOMANIA TIENDA</span>
               </button>
             </div>
           </div>
@@ -174,6 +189,15 @@
             hidden
           >
             BOLETAS
+          </button>
+          <button
+            class="taskbar-program game-target"
+            data-program-toggle="tienda"
+            data-game-id="task-tienda"
+            type="button"
+            hidden
+          >
+            TIENDA
           </button>
         </div>
 
@@ -369,9 +393,17 @@
             </div>
           </header>
 
-          <div class="system-window-body">
-            <div class="coming-soon-panel game-target" data-game-id="gallery-coming-soon" tabindex="-1">
-              <span>COMING SOON</span>
+          <div class="system-window-body gallery-window-body">
+            <div class="gallery-patch-wall game-target" data-game-id="gallery-patch-wall" tabindex="-1" aria-label="Pared de parches de galeria">
+              <figure class="gallery-patch gallery-patch-emblem" style="--patch-x: 22%; --patch-y: 50%; --patch-tilt: -7deg;" aria-label="Parche de emblema">
+                <img class="gallery-patch-photo" src="assets/gallery/logo-voltic.jpg" alt="">
+              </figure>
+              <figure class="gallery-patch gallery-patch-hand" style="--patch-x: 50%; --patch-y: 50%; --patch-tilt: 5deg;" aria-label="Parche de mano">
+                <img class="gallery-patch-photo" src="assets/gallery/hand-sign.jpg" alt="">
+              </figure>
+              <figure class="gallery-patch gallery-patch-seif" style="--patch-x: 78%; --patch-y: 50%; --patch-tilt: -3deg;" aria-label="Parche SEIF">
+                <img class="gallery-patch-photo" src="assets/gallery/seifpf.jpg" alt="">
+              </figure>
             </div>
           </div>
         </section>
@@ -394,6 +426,164 @@
           <div class="system-window-body">
             <div class="coming-soon-panel game-target" data-game-id="tickets-coming-soon" tabindex="-1">
               <span>COMING SOON</span>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <section class="desktop-window desktop-window-game desktop-window-store" id="window-tienda" data-window="tienda" hidden>
+        <section class="system-window-card">
+          <header class="xp-titlebar">
+            <div class="xp-title-left">
+              <span class="xp-app-icon" aria-hidden="true"></span>
+              <span>TIENDA</span>
+            </div>
+            <div class="xp-window-actions">
+              <button class="xp-action game-target" data-window-action="minimize" data-window-target="tienda" data-game-id="store-minimize" type="button" aria-label="Minimizar tienda">_</button>
+              <button class="xp-action game-target" data-window-action="maximize" data-window-target="tienda" data-game-id="store-focus" type="button" aria-label="Expandir tienda">□</button>
+              <button class="xp-action xp-close game-target" data-window-action="close" data-window-target="tienda" data-game-id="store-close" type="button" aria-label="Cerrar tienda">×</button>
+            </div>
+          </header>
+
+          <div class="system-window-body store-window-body">
+            <div class="store-shell game-target" id="store-window-main" data-game-id="store-window-main" tabindex="-1">
+              <header class="store-head">
+                <div>
+                  <p class="store-kicker">DRACOMANIA SHOP.EXE</p>
+                  <h2 class="store-title">TIENDA DE ROPA</h2>
+                </div>
+                <div class="store-register" aria-label="Caja registradora">
+                  <span>CAJA 95</span>
+                  <strong id="store-register-total">RD$0.00</strong>
+                </div>
+              </header>
+
+              <div class="store-category-tabs" aria-label="Categorias de tienda">
+                <button class="store-tab is-active" type="button">TEES</button>
+              </div>
+
+              <div class="store-layout">
+                <section class="store-product-grid" aria-label="Catalogo de tees">
+                  <article class="store-product" data-store-product="volticmania-tee" data-store-name="VOLTICMANIA" data-store-price="1600" data-store-sizes="S,M,L,XL">
+                    <div class="store-product-preview store-product-photo" aria-hidden="true">
+                      <img src="assets/store/volticmania.jpeg?v=20260712a" alt="" width="1600" height="1600" />
+                    </div>
+                    <div class="store-product-copy">
+                      <h3>VOLTICMANIA</h3>
+                      <p>TEE NEGRA</p>
+                      <div class="store-product-meta">
+                        <span>S M L XL</span>
+                        <strong>RD$1,600</strong>
+                      </div>
+                    </div>
+                    <button class="store-add-button game-target" data-store-add="volticmania-tee" data-game-id="store-add-volticmania" type="button">AGREGAR</button>
+                  </article>
+
+                  <article class="store-product" data-store-product="sawpulse-tee" data-store-name="SAWPULSE" data-store-price="1500" data-store-sizes="S,M,L,XL">
+                    <div class="store-product-preview store-product-photo store-product-photo-transparent" aria-hidden="true">
+                      <img src="assets/store/sawpulse.jpeg" alt="" width="1600" height="1600" />
+                    </div>
+                    <div class="store-product-copy">
+                      <h3>SAWPULSE</h3>
+                      <p>TEE BONE / LOGO PIXEL</p>
+                      <div class="store-product-meta">
+                        <span>S M L XL</span>
+                        <strong>RD$1,500</strong>
+                      </div>
+                    </div>
+                    <button class="store-add-button game-target" data-store-add="sawpulse-tee" data-game-id="store-add-sawpulse" type="button">AGREGAR</button>
+                  </article>
+                </section>
+
+                <aside class="store-bag-panel" aria-label="Resumen de bolsa">
+                  <div class="store-bag-head">
+                    <span>BOLSA</span>
+                    <span id="store-bag-count">0 ITEMS</span>
+                  </div>
+                  <ol class="store-bag-list" id="store-bag-list">
+                    <li class="store-bag-empty">BOLSA VACIA</li>
+                  </ol>
+                  <div class="store-total-row store-shipping-row">
+                    <span>ENVIO</span>
+                    <strong id="store-shipping">RD$0</strong>
+                  </div>
+                  <div class="store-total-row">
+                    <span>TOTAL</span>
+                    <strong id="store-total">RD$0</strong>
+                  </div>
+                  <button class="store-checkout-button" id="store-checkout-button" type="button" disabled>CHECKOUT</button>
+                </aside>
+              </div>
+
+              <div class="store-checkout-modal" id="store-checkout-modal" role="dialog" aria-modal="true" aria-labelledby="store-checkout-title" hidden>
+                <form class="store-checkout-window" id="store-checkout-form" novalidate>
+                  <header class="store-checkout-titlebar">
+                    <span id="store-checkout-title">CHECKOUT.EXE</span>
+                    <button class="store-checkout-close" id="store-checkout-close" type="button" aria-label="Cerrar checkout">×</button>
+                  </header>
+
+                  <div class="store-checkout-body">
+                    <div class="store-checkout-error" id="store-checkout-error" role="alert" hidden>
+                      <strong>ERROR</strong>
+                      <span>Debe completar todos los campos.</span>
+                    </div>
+
+                    <div class="store-checkout-grid">
+                      <label class="store-checkout-field" for="checkout-name">
+                        <span>Nombre</span>
+                        <input id="checkout-name" name="name" type="text" autocomplete="name" />
+                      </label>
+
+                      <label class="store-checkout-field" for="checkout-email">
+                        <span>Correo</span>
+                        <input id="checkout-email" name="email" type="email" autocomplete="email" />
+                      </label>
+
+                      <label class="store-checkout-field" for="checkout-phone">
+                        <span>Telefono</span>
+                        <input id="checkout-phone" name="phone" type="tel" autocomplete="tel" />
+                      </label>
+
+                      <label class="store-checkout-field" for="checkout-country">
+                        <span>Pais</span>
+                        <input id="checkout-country" name="country" type="text" autocomplete="country-name" />
+                      </label>
+
+                      <label class="store-checkout-field" for="checkout-city">
+                        <span>Ciudad</span>
+                        <input id="checkout-city" name="city" type="text" autocomplete="address-level2" />
+                      </label>
+
+                      <label class="store-checkout-field" for="checkout-address">
+                        <span>Direccion</span>
+                        <input id="checkout-address" name="address" type="text" autocomplete="street-address" />
+                      </label>
+
+                      <label class="store-checkout-field" for="checkout-zip">
+                        <span>Codigo Postal</span>
+                        <input id="checkout-zip" name="zip" type="text" autocomplete="postal-code" />
+                      </label>
+                    </div>
+
+                    <fieldset class="store-payment-fieldset">
+                      <legend>Metodo de pago</legend>
+                      <label>
+                        <input name="paymentMethod" type="radio" value="Qik" />
+                        <span>Qik</span>
+                      </label>
+                      <label>
+                        <input name="paymentMethod" type="radio" value="PayPal" />
+                        <span>PayPal</span>
+                      </label>
+                    </fieldset>
+
+                    <div class="store-checkout-actions">
+                      <button class="store-dialog-button" id="store-checkout-cancel" type="button">Cancelar</button>
+                      <button class="store-dialog-button store-dialog-button-primary" type="submit">Continuar</button>
+                    </div>
+                  </div>
+                </form>
+              </div>
             </div>
           </div>
         </section>
