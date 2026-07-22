@@ -1192,8 +1192,14 @@ function handleWindowAction(action, program) {
 function beginWindowDrag(event, program) {
   if (!(event.target instanceof HTMLElement)) return;
   if (event.button !== 0) return;
-  if (isPhoneDevice()) return;
   if (event.target.closest("[data-window-action]")) return;
+
+  if (isPhoneDevice()) {
+    // La tienda (y el resto de ventanas) es estatica en telefono: no se
+    // arrastra, solo evitamos que el toque dispare algun gesto nativo.
+    event.preventDefault();
+    return;
+  }
 
   const windowState = state.windows[program];
   const windowElement = el.windows[program];

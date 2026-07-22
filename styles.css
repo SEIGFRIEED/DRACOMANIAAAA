@@ -47,9 +47,16 @@
       text-size-adjust: 100%;
       background: #000000;
       overscroll-behavior: none;
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      overflow: hidden;
     }
 
     body {
+      position: fixed;
+      inset: 0;
+      width: 100%;
       min-height: var(--app-height);
       height: var(--app-height);
       font-family: 'Press Start 2P', monospace;
@@ -927,7 +934,9 @@
     }
 
     .store-window-body {
-      overflow: auto;
+      overflow-x: hidden;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
       background: #c0c0c0;
       border-top-color: #808080;
       color: #000000;
@@ -1528,6 +1537,15 @@
       outline-offset: 1px;
     }
 
+    /* Evita el auto-zoom de iOS/Android al enfocar un campo: se aplica
+       segun la deteccion real de dispositivo (JS), no segun el ancho del
+       viewport, para que tambien funcione en landscape (>760px). */
+    body.is-phone-device .store-size-select,
+    body.is-phone-device .store-qty-input,
+    body.is-phone-device .store-checkout-field input {
+      font-size: 16px;
+    }
+
     .store-payment-fieldset {
       display: flex;
       flex-wrap: wrap;
@@ -1655,6 +1673,47 @@
       .store-qty-input {
         font-size: 16px;
       }
+    }
+
+    /* En movil, el checkout deja de ser un popup flotante centrado (estilo
+       PC) y pasa a ser una ventana completa que tapa toda la tienda. */
+    body.is-phone-device .store-checkout-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 95;
+      padding: 0;
+      display: flex;
+      background: #000000;
+    }
+
+    body.is-phone-device .store-checkout-window {
+      width: 100%;
+      max-width: none;
+      height: 100%;
+      max-height: none;
+      border: none;
+      box-shadow: none;
+    }
+
+    body.is-phone-device .store-checkout-titlebar {
+      padding-top: calc(3px + var(--safe-top));
+      padding-left: calc(8px + var(--safe-left));
+      padding-right: calc(4px + var(--safe-right));
+    }
+
+    body.is-phone-device .store-checkout-body {
+      padding-left: calc(12px + var(--safe-left));
+      padding-right: calc(12px + var(--safe-right));
+      padding-bottom: calc(12px + var(--safe-bottom));
+    }
+
+    body.is-phone-device .store-checkout-body {
+      flex: 1;
+      min-height: 0;
+    }
+
+    body.is-phone-device .store-checkout-actions {
+      padding-bottom: calc(2px + var(--safe-bottom));
     }
 
     .coming-soon-panel span {
