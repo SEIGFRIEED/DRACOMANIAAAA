@@ -394,16 +394,8 @@
           </header>
 
           <div class="system-window-body gallery-window-body">
-            <div class="gallery-patch-wall game-target" data-game-id="gallery-patch-wall" tabindex="-1" aria-label="Pared de parches de galeria">
-              <figure class="gallery-patch gallery-patch-emblem" style="--patch-x: 22%; --patch-y: 50%; --patch-tilt: -7deg;" aria-label="Parche de emblema">
-                <img class="gallery-patch-photo" src="assets/gallery/logo-voltic.jpg" alt="">
-              </figure>
-              <figure class="gallery-patch gallery-patch-hand" style="--patch-x: 50%; --patch-y: 50%; --patch-tilt: 5deg;" aria-label="Parche de mano">
-                <img class="gallery-patch-photo" src="assets/gallery/hand-sign.jpg" alt="">
-              </figure>
-              <figure class="gallery-patch gallery-patch-seif" style="--patch-x: 78%; --patch-y: 50%; --patch-tilt: -3deg;" aria-label="Parche SEIF">
-                <img class="gallery-patch-photo" src="assets/gallery/seifpf.jpg" alt="">
-              </figure>
+            <div class="gallery-scroll-view game-target" data-game-id="gallery-scroll-view" tabindex="-1" aria-label="Galeria de fotos, desliza hacia abajo para ver mas">
+              <img class="gallery-scroll-image" src="assets/gallery/galeria-strip.webp" alt="Galeria DRACOMANIA" loading="lazy" />
             </div>
           </div>
         </section>
@@ -465,8 +457,8 @@
               <div class="store-layout">
                 <section class="store-product-grid" aria-label="Catalogo de tees">
                   <article class="store-product" data-store-product="volticmania-tee" data-store-name="VOLTICMANIA" data-store-price="1600" data-store-sizes="S,M,L,XL">
-                    <div class="store-product-preview store-product-photo" aria-hidden="true">
-                      <img src="assets/store/volticmania.jpeg?v=20260712a" alt="" width="1600" height="1600" />
+                    <div class="store-product-preview store-product-photo store-product-photo-transparent" aria-hidden="true">
+                      <img src="assets/store/volticmania.png?v=20260722a" alt="" width="1600" height="1600" />
                     </div>
                     <div class="store-product-copy">
                       <h3>VOLTICMANIA</h3>
@@ -481,7 +473,7 @@
 
                   <article class="store-product" data-store-product="sawpulse-tee" data-store-name="SAWPULSE" data-store-price="1500" data-store-sizes="S,M,L,XL">
                     <div class="store-product-preview store-product-photo store-product-photo-transparent" aria-hidden="true">
-                      <img src="assets/store/sawpulse.jpeg" alt="" width="1600" height="1600" />
+                      <img src="assets/store/sawpulse.png?v=20260722a" alt="" width="1600" height="1600" />
                     </div>
                     <div class="store-product-copy">
                       <h3>SAWPULSE</h3>
@@ -591,6 +583,7 @@
     </section>
   </main>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="script.js?v=20260616c"></script>
 </body>
 </html>

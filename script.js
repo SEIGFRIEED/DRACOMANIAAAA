@@ -256,6 +256,7 @@ function init() {
   tickClock();
   renderTaskbarPrograms();
   renderStoreBag();
+  initStoreProduct3D();
   startVisualizer();
   updateOrientationGate();
   renderGalleryPatchWall();
@@ -706,6 +707,208 @@ function renderStoreBag() {
   });
 
   syncGameTargetListeners();
+}
+
+function initStoreProduct3D() {
+  if (typeof THREE === "undefined") return;
+  document.querySelectorAll(".store-product-photo").forEach(setupStoreProduct3D);
+}
+
+function setupStoreProduct3D(photoEl) {
+  const img = photoEl.querySelector("img");
+  if (!(img instanceof HTMLImageElement)) return;
+
+  const canvas = document.createElement("canvas");
+  canvas.className = "store-product-3d-canvas";
+  photoEl.appendChild(canvas);
+
+  const RENDER_SCALE = 0.34;
+  const SNAP_GRID = 46;
+  const BULGE_AMOUNT = 0.22;
+
+  const card = {
+    renderer: null,
+    scene: null,
+    camera: null,
+    group: null,
+    texture: null,
+    frameId: null,
+    ready: false,
+    hovering: false,
+    dragging: false,
+    lastX: 0,
+    lastY: 0,
+    rotY: -0.35,
+    rotX: 0.14,
+    velocity: 0.006,
+  };
+
+  function ensureScene() {
+    if (card.ready) return;
+    card.ready = true;
+
+    const width = Math.max(photoEl.clientWidth, 1);
+    const height = Math.max(photoEl.clientHeight, 1);
+
+    card.renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: true });
+    card.renderer.setPixelRatio(1);
+    card.renderer.setClearColor(0x000000, 0);
+    card.renderer.setSize(Math.round(width * RENDER_SCALE), Math.round(height * RENDER_SCALE), false);
+
+    card.scene = new THREE.Scene();
+    card.camera = new THREE.PerspectiveCamera(28, width / height, 0.1, 20);
+    card.camera.position.set(0, 0, 3.3);
+
+    card.texture = new THREE.Texture(img);
+    card.texture.magFilter = THREE.NearestFilter;
+    card.texture.minFilter = THREE.NearestFilter;
+    card.texture.generateMipmaps = false;
+    card.texture.needsUpdate = true;
+
+    if (!img.complete) {
+      img.addEventListener("load", () => { card.texture.needsUpdate = true; }, { once: true });
+    }
+
+    const geometry = new THREE.PlaneGeometry(2.1, 2.1, 26, 26);
+
+    const vertexShader = `
+      varying vec2 vUv;
+      uniform float snapGrid;
+      uniform float bulge;
+      uniform float side;
+      void main() {
+        vUv = uv;
+        float nx = uv.x * 2.0 - 1.0;
+        float ny = uv.y * 2.0 - 1.0;
+        float dome = (1.0 - nx * nx) * (1.0 - ny * ny);
+        vec3 displaced = position;
+        displaced.z += dome * bulge * side;
+
+        vec4 clip = projectionMatrix * modelViewMatrix * vec4(displaced, 1.0);
+        clip.xy = floor(clip.xy / clip.w * snapGrid) / snapGrid * clip.w;
+        gl_Position = clip;
+      }
+    `;
+
+    const fragmentShader = `
+      uniform sampler2D map;
+      uniform float shade;
+      varying vec2 vUv;
+      void main() {
+        vec4 texel = texture2D(map, vUv);
+        if (texel.a < 0.2) discard;
+        float levels = 30.0;
+        float dither = (fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453) - 0.5) / levels;
+        vec3 color = texel.rgb * shade;
+        color = floor((color + dither) * levels + 0.5) / levels;
+        gl_FragColor = vec4(color, 1.0);
+      }
+    `;
+
+    function makeMaterial(sideValue, shadeValue) {
+      return new THREE.ShaderMaterial({
+        uniforms: {
+          map: { value: card.texture },
+          snapGrid: { value: SNAP_GRID },
+          bulge: { value: BULGE_AMOUNT },
+          side: { value: sideValue },
+          shade: { value: shadeValue },
+        },
+        vertexShader,
+        fragmentShader,
+        transparent: true,
+      });
+    }
+
+    const frontMaterial = makeMaterial(1, 1.0);
+    const frontMesh = new THREE.Mesh(geometry, frontMaterial);
+
+    const backMaterial = makeMaterial(1, 0.45);
+    const backMesh = new THREE.Mesh(geometry, backMaterial);
+    backMesh.rotation.y = Math.PI;
+    backMesh.position.z = -0.06;
+
+    card.group = new THREE.Group();
+    card.group.add(backMesh);
+    card.group.add(frontMesh);
+    card.group.rotation.x = card.rotX;
+    card.group.rotation.y = card.rotY;
+    card.scene.add(card.group);
+  }
+
+  function renderFrame() {
+    if (!card.dragging) {
+      card.rotY += card.velocity;
+    }
+    card.group.rotation.y = card.rotY;
+    card.group.rotation.x = card.rotX;
+    card.renderer.render(card.scene, card.camera);
+    card.frameId = requestAnimationFrame(renderFrame);
+  }
+
+  function start() {
+    ensureScene();
+    photoEl.classList.add("is-3d-active");
+    if (!card.frameId) renderFrame();
+  }
+
+  function stop() {
+    photoEl.classList.remove("is-3d-active");
+    if (card.frameId) {
+      cancelAnimationFrame(card.frameId);
+      card.frameId = null;
+    }
+  }
+
+  function onPointerMove(event) {
+    if (!card.dragging) return;
+    const deltaX = event.clientX - card.lastX;
+    const deltaY = event.clientY - card.lastY;
+    card.lastX = event.clientX;
+    card.lastY = event.clientY;
+    card.rotY += deltaX * 0.012;
+    card.rotX += deltaY * 0.012;
+    card.rotX = Math.max(-1.1, Math.min(1.1, card.rotX));
+  }
+
+  function onPointerUp() {
+    card.dragging = false;
+    photoEl.classList.remove("is-dragging");
+    window.removeEventListener("pointermove", onPointerMove);
+    window.removeEventListener("pointerup", onPointerUp);
+    if (!card.hovering) stop();
+  }
+
+  function onPointerDown(event) {
+    event.preventDefault();
+    card.dragging = true;
+    photoEl.classList.add("is-dragging");
+    card.lastX = event.clientX;
+    card.lastY = event.clientY;
+    window.addEventListener("pointermove", onPointerMove);
+    window.addEventListener("pointerup", onPointerUp);
+  }
+
+  photoEl.addEventListener("pointerenter", () => {
+    card.hovering = true;
+    start();
+  });
+
+  photoEl.addEventListener("pointerleave", () => {
+    card.hovering = false;
+    if (!card.dragging) stop();
+  });
+
+  canvas.addEventListener("pointerdown", onPointerDown);
+
+  window.addEventListener("resize", () => {
+    if (!card.ready) return;
+    const width = Math.max(photoEl.clientWidth, 1);
+    const height = Math.max(photoEl.clientHeight, 1);
+    card.camera.aspect = width / height;
+    card.camera.updateProjectionMatrix();
+    card.renderer.setSize(Math.round(width * RENDER_SCALE), Math.round(height * RENDER_SCALE), false);
+  });
 }
 
 function openStoreCheckout() {
