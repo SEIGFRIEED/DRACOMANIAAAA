@@ -4076,7 +4076,4 @@
       box-shadow: 2px 2px 0 var(--border-dk);
     }
 
-    body.is-phone-device.is-phone-portrait .panel-meta h2 {
-      font-size: 8.5px;
-      line-height: 1.4;
-    }
+    body.is-phone-device.is-pho  
