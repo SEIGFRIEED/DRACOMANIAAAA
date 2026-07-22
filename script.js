@@ -53,12 +53,6 @@ const albumConfig = {
       note: "Arte de portada",
     },
   ],
-  doodles: [
-    { image: "assets/gallery/hand-sign.jpg", alt: "Hand Sign" },
-    { image: "assets/gallery/logo-voltic.jpg", alt: "Voltic Logo" },
-    { image: "assets/gallery/seifpf.jpg", alt: "Seifpf" },
-    { image: "assets/doodles/new-patch.svg", alt: "Nuevo parche" },
-  ],
   tracks: [
     {
       title: "INTRO",
