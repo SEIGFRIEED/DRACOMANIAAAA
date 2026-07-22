@@ -54,10 +54,10 @@ const albumConfig = {
     },
   ],
   doodles: [
-    { image: "assets/doodles/new-patch.svg", size: "clamp(90px, 18vmin, 140px)", alt: "Nuevo parche" },
-    /* Ejemplo adicional:
-    { image: 'assets/doodles/doodle1.png', x: '30%', y: '40%', tilt: '-4deg', size: 'clamp(120px, 24vmin, 220px)'}
-    */
+    { image: "assets/gallery/hand-sign.jpg", alt: "Hand Sign" },
+    { image: "assets/gallery/logo-voltic.jpg", alt: "Voltic Logo" },
+    { image: "assets/gallery/seifpf.jpg", alt: "Seifpf" },
+    { image: "assets/doodles/new-patch.svg", alt: "Nuevo parche" },
   ],
   tracks: [
     {
@@ -852,6 +852,14 @@ function setupStoreProduct3D(photoEl) {
     if (!card.frameId) renderFrame();
   }
 
+  function toggle3D() {
+    if (photoEl.classList.contains("is-3d-active")) {
+      stop();
+    } else {
+      start();
+    }
+  }
+
   function stop() {
     photoEl.classList.remove("is-3d-active");
     if (card.frameId) {
@@ -876,10 +884,20 @@ function setupStoreProduct3D(photoEl) {
     photoEl.classList.remove("is-dragging");
     window.removeEventListener("pointermove", onPointerMove);
     window.removeEventListener("pointerup", onPointerUp);
-    if (!card.hovering) stop();
+    // On touch devices or when not hovering, we might want to keep it active or not
+    // If we want it to stay active until clicked again, we don't call stop() here
+    if (!isPhoneDevice() && !card.hovering) stop();
   }
 
   function onPointerDown(event) {
+    // Only toggle if not already dragging/active or if specifically clicking to toggle
+    if (isPhoneDevice()) {
+      if (!photoEl.classList.contains("is-3d-active")) {
+        start();
+        return; // Let first click just start it
+      }
+    }
+
     event.preventDefault();
     card.dragging = true;
     photoEl.classList.add("is-dragging");
@@ -889,15 +907,25 @@ function setupStoreProduct3D(photoEl) {
     window.addEventListener("pointerup", onPointerUp);
   }
 
-  photoEl.addEventListener("pointerenter", () => {
-    card.hovering = true;
-    start();
-  });
+  if (!isPhoneDevice()) {
+    photoEl.addEventListener("pointerenter", () => {
+      card.hovering = true;
+      start();
+    });
 
-  photoEl.addEventListener("pointerleave", () => {
-    card.hovering = false;
-    if (!card.dragging) stop();
-  });
+    photoEl.addEventListener("pointerleave", () => {
+      card.hovering = false;
+      if (!card.dragging) stop();
+    });
+  } else {
+    // For cellphones, we use click to toggle/start
+    photoEl.addEventListener("click", (e) => {
+       // if we click the photo area but not dragging
+       if (!card.dragging && !photoEl.classList.contains("is-3d-active")) {
+           start();
+       }
+    });
+  }
 
   canvas.addEventListener("pointerdown", onPointerDown);
 
