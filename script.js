@@ -53,12 +53,6 @@ const albumConfig = {
       note: "Arte de portada",
     },
   ],
-  doodles: [
-    { image: "assets/gallery/hand-sign.jpg", alt: "Hand Sign" },
-    { image: "assets/gallery/logo-voltic.jpg", alt: "Voltic Logo" },
-    { image: "assets/gallery/seifpf.jpg", alt: "Seifpf" },
-    { image: "assets/doodles/new-patch.svg", alt: "Nuevo parche" },
-  ],
   tracks: [
     {
       title: "INTRO",
@@ -259,7 +253,6 @@ function init() {
   initStoreProduct3D();
   startVisualizer();
   updateOrientationGate();
-  renderGalleryPatchWall();
   void startExperience();
 }
 
@@ -1463,7 +1456,7 @@ function getFocusedProgram() {
 function getDefaultSelectionId(program) {
   if (program === "trash") return "trash-empty-state";
   if (program === "juego") return "game-coming-soon";
-  if (program === "galeria") return "gallery-patch-wall";
+  if (program === "galeria") return "gallery-scroll-view";
   if (program === "boletas") return "tickets-coming-soon";
   if (program === "tienda") return "store-window-main";
 
@@ -1604,36 +1597,6 @@ function renderCreditsWindow() {
 
   el.contentWindowBody.appendChild(stack);
   syncGameSelection();
-}
-
-function renderGalleryPatchWall() {
-  const patchWall = document.querySelector(".gallery-patch-wall");
-  if (!patchWall) return;
-
-  Array.from(patchWall.querySelectorAll(".gallery-patch-doodle")).forEach(node => node.remove());
-  patchWall.classList.add("gallery-patch-grid");
-
-  const doodles = Array.isArray(albumConfig.doodles)
-    ? albumConfig.doodles.filter(doodle => doodle && doodle.image)
-    : [];
-
-  doodles.forEach((doodle, index) => {
-    const fig = document.createElement("figure");
-    fig.className = "gallery-patch gallery-patch-doodle";
-    fig.setAttribute("aria-label", doodle.label || `Parche extra ${index + 1}`);
-
-    if (doodle.size) {
-      fig.style.setProperty("--patch-size", doodle.size);
-    }
-
-    const img = document.createElement("img");
-    img.className = "gallery-patch-photo";
-    img.src = resolveAssetPath(doodle.image);
-    img.alt = doodle.alt || "";
-
-    fig.appendChild(img);
-    patchWall.appendChild(fig);
-  });
 }
 
 function renderArtworksWindow() {
