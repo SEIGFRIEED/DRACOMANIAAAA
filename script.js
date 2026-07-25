@@ -469,7 +469,6 @@ function syncViewportMetrics() {
   const viewport = window.visualViewport;
   const width = Math.round(viewport?.width || window.innerWidth || document.documentElement.clientWidth || 0);
   const height = Math.round(viewport?.height || window.innerHeight || document.documentElement.clientHeight || 0);
-  const offsetTop = Math.round(viewport?.offsetTop || 0);
 
   if (width > 0) {
     document.documentElement.style.setProperty("--app-width", `${width}px`);
@@ -478,8 +477,6 @@ function syncViewportMetrics() {
   if (height > 0) {
     document.documentElement.style.setProperty("--app-height", `${height}px`);
   }
-
-  document.documentElement.style.setProperty("--app-offset-top", `${offsetTop}px`);
 }
 
 function syncDeviceClasses() {
