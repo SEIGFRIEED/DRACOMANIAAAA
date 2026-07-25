@@ -818,6 +818,8 @@
     .desktop-window {
       position: absolute;
       z-index: 15;
+      max-width: calc(var(--app-width) - var(--safe-left) - var(--safe-right) - 4px);
+      max-height: calc(var(--app-height) - var(--safe-top) - var(--safe-bottom) - 4px);
     }
 
     .desktop-window-player {
@@ -1445,6 +1447,8 @@
 
     .store-checkout-window {
       width: min(520px, 100%);
+      max-width: 100%;
+      min-width: 0;
       max-height: 100%;
       display: flex;
       flex-direction: column;
@@ -1512,11 +1516,14 @@
       align-content: start;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 8px;
+      min-width: 0;
+      max-width: 100%;
     }
 
     .store-checkout-field {
       display: grid;
       gap: 4px;
+      min-width: 0;
       font-size: 11px;
       font-weight: 700;
     }
@@ -1673,7 +1680,7 @@
       color: #ffffff;
     }
 
-    @media (max-width: 760px) {
+    @media (max-width: 900px) {
       .desktop-window-store {
         top: calc(8px + var(--safe-top));
         left: calc(6px + var(--safe-left));

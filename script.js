@@ -511,9 +511,9 @@ function isPhoneDevice() {
   const touchCapable = navigator.maxTouchPoints > 0
     || window.matchMedia("(pointer: coarse)").matches
     || window.matchMedia("(hover: none)").matches;
-  const compactLandscapeViewport = window.innerHeight <= 540 && window.innerWidth <= 950;
+  const compactLandscapeViewport = window.innerHeight <= 620 && window.innerWidth <= 1000;
 
-  return Boolean(shortSide <= 540 && longSide <= 1024 && (mobileUserAgent || touchCapable || compactLandscapeViewport));
+  return Boolean(shortSide <= 620 && longSide <= 1080 && (mobileUserAgent || touchCapable || compactLandscapeViewport));
 }
 
 function isPortraitOrientation() {
