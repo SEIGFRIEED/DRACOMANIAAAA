@@ -1965,7 +1965,7 @@ function closeStoreTicket() {
 // Pega aqui la URL que te da Google al desplegar el Apps Script como
 // "Web app" (termina en /exec). Mientras quede vacia, el ticket se
 // genera igual pero no se envia el correo automatico.
-const STORE_ORDER_ENDPOINT = "https://script.google.com/macros/s/AKfycbwwcFNBD3ZKz98iP-DTnGhHWv7CF3V12EduE-fSBpJAael8oQat3CdtZPKeDMZT0p1kyQ/exec";
+const STORE_ORDER_ENDPOINT = "https://dracomaniamail.meliodasjimenez34.workers.dev/";
 
 async function sendStoreOrderEmail(order) {
   if (!STORE_ORDER_ENDPOINT) return { ok: false, reason: "not-configured" };
