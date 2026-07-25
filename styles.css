@@ -25,6 +25,7 @@
       --glow-strength: 0.72;
       --app-height: 100svh;
       --app-width: 100vw;
+      --app-offset-top: 0px;
       --safe-top: env(safe-area-inset-top, 0px);
       --safe-right: env(safe-area-inset-right, 0px);
       --safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -70,6 +71,17 @@
       overflow: hidden;
       overscroll-behavior: none;
       touch-action: manipulation;
+    }
+
+    /* iOS Safari no encoge el "layout viewport" cuando aparece el teclado
+       (solo el "visual viewport"); los elementos position:fixed quedan
+       anclados al tamaño viejo y dejan un hueco negro debajo del contenido
+       visible. Compensamos desplazando todo hacia arriba lo que el visual
+       viewport se haya corrido, y el transform aqui convierte a body en el
+       contenedor de referencia de sus descendientes position:fixed, para
+       que ventanas y modales sigan la pantalla real en vez del viewport. */
+    body.is-phone-device {
+      transform: translateY(calc(-1 * var(--app-offset-top, 0px)));
     }
 
     button, input {
@@ -1727,13 +1739,43 @@
       }
 
       .store-checkout-modal {
-        inset: 6px;
-        padding: 6px;
+        position: fixed;
+        inset: auto;
+        top: 0;
+        left: 0;
+        width: var(--app-width, 100%);
+        height: var(--app-height, 100%);
+        z-index: 95;
+        padding: 0;
+        display: flex;
+        background: #000000;
       }
 
       .store-checkout-window {
-        width: min(100%, 420px);
-        max-height: 100%;
+        width: 100%;
+        max-width: none;
+        height: 100%;
+        max-height: none;
+        border: none;
+        box-shadow: none;
+      }
+
+      .store-checkout-titlebar {
+        padding-top: calc(3px + var(--safe-top));
+        padding-left: calc(8px + var(--safe-left));
+        padding-right: calc(4px + var(--safe-right));
+      }
+
+      .store-checkout-body {
+        flex: 1;
+        min-height: 0;
+        padding-left: calc(12px + var(--safe-left));
+        padding-right: calc(12px + var(--safe-right));
+        padding-bottom: calc(12px + var(--safe-bottom));
+      }
+
+      .store-checkout-actions {
+        padding-bottom: calc(2px + var(--safe-bottom));
       }
 
       .store-checkout-grid {
@@ -1745,13 +1787,22 @@
       .store-qty-input {
         font-size: 16px;
       }
+
+      /* Compensa el mismo corrimiento del teclado de iOS aqui tambien,
+         sin depender de la deteccion JS de "telefono". */
+      body {
+        transform: translateY(calc(-1 * var(--app-offset-top, 0px)));
+      }
     }
 
     /* En movil, el checkout deja de ser un popup flotante centrado (estilo
        PC) y pasa a ser una ventana completa que tapa toda la tienda. */
     body.is-phone-device .store-checkout-modal {
       position: fixed;
-      inset: 0;
+      top: 0;
+      left: 0;
+      width: var(--app-width, 100%);
+      height: var(--app-height, 100%);
       z-index: 95;
       padding: 0;
       display: flex;
