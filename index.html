@@ -457,7 +457,7 @@
               <div class="store-layout">
                 <section class="store-product-grid" aria-label="Catalogo de tees">
                   <article class="store-product" data-store-product="volticmania-tee" data-store-name="VOLTICMANIA" data-store-price="1600" data-store-sizes="S,M,L,XL">
-                    <div class="store-product-preview store-product-photo store-product-photo-transparent" aria-hidden="true">
+                    <div class="store-product-preview store-product-photo store-product-photo-transparent" data-store-model="assets/store/volticmania3d.fbx?v=20260722a" aria-hidden="true">
                       <img src="assets/store/volticmania.png?v=20260722a" alt="" width="1600" height="1600" />
                     </div>
                     <div class="store-product-copy">
@@ -472,7 +472,7 @@
                   </article>
 
                   <article class="store-product" data-store-product="sawpulse-tee" data-store-name="SAWPULSE" data-store-price="1500" data-store-sizes="S,M,L,XL">
-                    <div class="store-product-preview store-product-photo store-product-photo-transparent" aria-hidden="true">
+                    <div class="store-product-preview store-product-photo store-product-photo-transparent" data-store-model="assets/store/SAWTIC3d.fbx" aria-hidden="true">
                       <img src="assets/store/sawpulse.png?v=20260722a" alt="" width="1600" height="1600" />
                     </div>
                     <div class="store-product-copy">
@@ -557,24 +557,29 @@
                       </label>
                     </div>
 
-                    <fieldset class="store-payment-fieldset">
-                      <legend>Metodo de pago</legend>
-                      <label>
-                        <input name="paymentMethod" type="radio" value="Qik" />
-                        <span>Qik</span>
-                      </label>
-                      <label>
-                        <input name="paymentMethod" type="radio" value="PayPal" />
-                        <span>PayPal</span>
-                      </label>
-                    </fieldset>
-
                     <div class="store-checkout-actions">
                       <button class="store-dialog-button" id="store-checkout-cancel" type="button">Cancelar</button>
-                      <button class="store-dialog-button store-dialog-button-primary" type="submit">Continuar</button>
+                      <button class="store-dialog-button store-dialog-button-primary" type="submit">Generar ticket</button>
                     </div>
                   </div>
                 </form>
+              </div>
+
+              <div class="store-checkout-modal store-ticket-modal" id="store-ticket-modal" role="dialog" aria-modal="true" aria-labelledby="store-ticket-window-title" hidden>
+                <section class="store-checkout-window store-ticket-window">
+                  <header class="store-checkout-titlebar">
+                    <span id="store-ticket-window-title">TICKET.EXE</span>
+                    <button class="store-checkout-close" id="store-ticket-close" type="button" aria-label="Cerrar ticket">×</button>
+                  </header>
+
+                  <div class="store-checkout-body">
+                    <section class="store-ticket" id="store-ticket" aria-live="polite"></section>
+
+                    <div class="store-checkout-actions">
+                      <button class="store-dialog-button store-dialog-button-primary" id="store-ticket-done" type="button">Aceptar</button>
+                    </div>
+                  </div>
+                </section>
               </div>
             </div>
           </div>
@@ -584,6 +589,8 @@
   </main>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="script.js?v=20260616c"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/libs/fflate.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FBXLoader.js"></script>
+  <script src="script.js?v=20260722b"></script>
 </body>
 </html>

@@ -1,3 +1,7 @@
+/* ==========================================================================
+   1. CONFIGURACIÓN Y ESTADO INICIAL
+   ========================================================================== */
+
 const albumConfig = {
   artist: "DRACOMANIA",
   title: "DRACOMANIA",
@@ -72,49 +76,42 @@ const albumConfig = {
       duration: "--:--",
       src: "assets/tracks/hate to be preview.wav"
     },
-
     {
       title: "K5ng",
       artist: "G3n3r0l & C01t0",
       duration: "--:--",
       src: "assets/tracks/kunglao.mp3",
     },
-
     {
       title: "v1rg1l",
       artist: "@L3luy0",
       duration: "--:--",
       src: "assets/tracks/preview aleluya.mp3.mp3",
     },
-
     {
       title: "t3 pi3n2o",
       artist: "@l3sit0",
       duration: "--:--",
       src: "assets/tracks/te pienso-8bit.wav",
     },
-
     {
       title: "M",
       artist: "Lu1g1",
       duration: "--:--",
       src: "assets/tracks/M LUIGI - 8BIT.wav",
     },
-
     {
       title: "n@k1n@",
       artist: "d1f3n",
       duration: "--:--",
       src: "assets/tracks/nakina 8bit.wav",
     },
-
     {
       title: "d3c0n3ta0",
       artist: "eriy1",
       duration: "--:--",
       src: "assets/tracks/deconetao-8bit.wav",
     },
-
   ],
 };
 
@@ -142,6 +139,8 @@ const state = {
   startupPending: false,
   storeBag: [],
   storeNextCartId: 1,
+  storeNextOrderId: 1,
+  storeLastOrder: null,
   bootStarted: false,
   bootComplete: false,
   nextWindowZ:  20,
@@ -157,13 +156,9 @@ const state = {
   startMenuOpen: false,
 };
 
-function getCensoredTrackTitle(track, index = state.currentIndex) {
-  const trackNumber = Number.isFinite(index) && index >= 0
-    ? String(index + 1).padStart(2, "0")
-    : "--";
-  // Devuelve el título real; la censura visual se aplica vía clase CSS 'censored'
-  return track && track.title ? track.title : `PISTA ${trackNumber}`;
-}
+/* ==========================================================================
+   2. REFERENCIAS A ELEMENTOS DEL DOM (el)
+   ========================================================================== */
 
 const el = {
   appShell:          document.getElementById("app-shell"),
@@ -200,8 +195,12 @@ const el = {
   storeCheckoutModal: document.getElementById("store-checkout-modal"),
   storeCheckoutForm: document.getElementById("store-checkout-form"),
   storeCheckoutError: document.getElementById("store-checkout-error"),
+  storeTicket:       document.getElementById("store-ticket"),
   storeCheckoutClose: document.getElementById("store-checkout-close"),
   storeCheckoutCancel: document.getElementById("store-checkout-cancel"),
+  storeTicketModal:  document.getElementById("store-ticket-modal"),
+  storeTicketClose:  document.getElementById("store-ticket-close"),
+  storeTicketDone:   document.getElementById("store-ticket-done"),
   mainStage:         document.getElementById("main-stage"),
   playlistPanel:     document.getElementById("playlist-panel"),
   contentWindow:     document.getElementById("content-window"),
@@ -229,6 +228,10 @@ const el = {
   shuffleButton:     document.getElementById("shuffle-button"),
   repeatButton:      document.getElementById("repeat-button"),
 };
+
+/* ==========================================================================
+   3. INICIALIZACIÓN DE LA APLICACIÓN
+   ========================================================================== */
 
 function init() {
   syncViewportMetrics();
@@ -293,118 +296,6 @@ async function runBootSequence() {
   el.bootSequence.hidden = true;
 }
 
-function revealDesktop() {
-  state.bootComplete = true;
-  playStartupSound();
-  el.appShell.hidden = false;
-  updateOrientationGate();
-  syncGameSelection("desktop-reproductor");
-}
-
-function handleViewportChange() {
-  syncViewportMetrics();
-  syncDeviceClasses();
-  updateOrientationGate();
-
-  if (!state.bootStarted && !state.bootComplete && !shouldPauseForPhoneOrientation()) {
-    void launchBootSequence();
-  }
-}
-
-function syncViewportMetrics() {
-  const viewport = window.visualViewport;
-  const width = Math.round(viewport?.width || window.innerWidth || document.documentElement.clientWidth || 0);
-  const height = Math.round(viewport?.height || window.innerHeight || document.documentElement.clientHeight || 0);
-
-  if (width > 0) {
-    document.documentElement.style.setProperty("--app-width", `${width}px`);
-  }
-
-  if (height > 0) {
-    document.documentElement.style.setProperty("--app-height", `${height}px`);
-  }
-}
-
-function syncDeviceClasses() {
-  const phoneDevice = isPhoneDevice();
-  const portraitOrientation = isPortraitOrientation();
-  const hasOpenProgram = Object.values(state.windows).some(windowState => windowState.open && !windowState.minimized);
-  const hasFullscreenProgram = Object.values(state.windows).some(windowState => (
-    windowState.open
-    && !windowState.minimized
-    && windowState.maximized
-  ));
-
-  document.body.classList.toggle("is-phone-device", phoneDevice);
-  document.body.classList.toggle("is-phone-portrait", phoneDevice && portraitOrientation);
-  document.body.classList.toggle("is-phone-landscape", phoneDevice && !portraitOrientation);
-  document.body.classList.toggle("has-phone-open-window", phoneDevice && hasOpenProgram);
-  document.body.classList.toggle("has-phone-fullscreen-window", phoneDevice && hasFullscreenProgram);
-}
-
-function shouldPauseForPhoneOrientation() {
-  return false;
-}
-
-function isPhoneDevice() {
-  const mobileUserAgent = navigator.userAgentData?.mobile
-    ?? /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(navigator.userAgent);
-  const shortSide = Math.min(window.innerWidth, window.innerHeight);
-  const longSide = Math.max(window.innerWidth, window.innerHeight);
-  const touchCapable = navigator.maxTouchPoints > 0
-    || window.matchMedia("(pointer: coarse)").matches
-    || window.matchMedia("(hover: none)").matches;
-  const compactLandscapeViewport = window.innerHeight <= 540 && window.innerWidth <= 950;
-
-  return Boolean(shortSide <= 540 && longSide <= 1024 && (mobileUserAgent || touchCapable || compactLandscapeViewport));
-}
-
-function isPortraitOrientation() {
-  return window.matchMedia("(orientation: portrait)").matches || window.innerHeight > window.innerWidth;
-}
-
-function updateOrientationGate() {
-  if (el.orientationGate) {
-    el.orientationGate.hidden = true;
-  }
-
-  document.body.classList.remove("orientation-gate-visible");
-
-  if (!state.bootStarted) {
-    el.bootSequence.hidden = false;
-  }
-
-  if (state.bootComplete) {
-    el.appShell.hidden = false;
-  }
-}
-
-function toggleStartMenu() {
-  if (state.startMenuOpen) {
-    closeStartMenu();
-    return;
-  }
-
-  openStartMenu();
-}
-
-function openStartMenu() {
-  if (!el.startMenu || !el.startButton) return;
-
-  state.startMenuOpen = true;
-  el.startMenu.hidden = false;
-  el.startButton.classList.add("is-open");
-  syncGameSelection("start-reproductor");
-}
-
-function closeStartMenu() {
-  if (!el.startMenu || !el.startButton || !state.startMenuOpen) return;
-
-  state.startMenuOpen = false;
-  el.startMenu.hidden = true;
-  el.startButton.classList.remove("is-open");
-}
-
 function showBootScreen(index) {
   el.bootScreens.forEach((screen, screenIndex) => {
     screen.classList.toggle("is-active", screenIndex === index);
@@ -423,624 +314,17 @@ function animateBootFill(fillElement, duration) {
   return wait(duration + 40);
 }
 
-function wait(duration) {
-  return new Promise(resolve => {
-    window.setTimeout(resolve, duration);
-  });
+function revealDesktop() {
+  state.bootComplete = true;
+  playStartupSound();
+  el.appShell.hidden = false;
+  updateOrientationGate();
+  syncGameSelection("desktop-reproductor");
 }
 
-function bindStoreEvents() {
-  document.querySelectorAll("[data-store-add]").forEach(button => {
-    button.addEventListener("click", () => {
-      addStoreProduct(button.dataset.storeAdd);
-    });
-  });
-
-  el.storeBagList?.addEventListener("click", event => {
-    if (!(event.target instanceof Element)) return;
-
-    const removeButton = event.target.closest("[data-store-remove]");
-    if (removeButton instanceof HTMLElement) {
-      removeStoreItem(Number(removeButton.dataset.storeRemove));
-      return;
-    }
-
-    const quantityButton = event.target.closest("[data-store-qty-action]");
-    if (!(quantityButton instanceof HTMLElement)) return;
-
-    const cartId = Number(quantityButton.dataset.storeQtyCart);
-    const action = quantityButton.dataset.storeQtyAction;
-    const item = state.storeBag.find(cartItem => cartItem.cartId === cartId);
-    if (!item) return;
-
-    const nextQuantity = action === "increase"
-      ? item.quantity + 1
-      : item.quantity - 1;
-    changeStoreItemQuantity(cartId, nextQuantity);
-  });
-
-  el.storeBagList?.addEventListener("change", event => {
-    if (!(event.target instanceof HTMLSelectElement)) return;
-    if (!event.target.matches("[data-store-size]")) return;
-
-    changeStoreItemSize(Number(event.target.dataset.storeSize), event.target.value);
-  });
-
-  el.storeBagList?.addEventListener("input", event => {
-    if (!(event.target instanceof HTMLInputElement)) return;
-    if (!event.target.matches("[data-store-quantity]")) return;
-
-    changeStoreItemQuantity(Number(event.target.dataset.storeQuantity), Number(event.target.value), { keepFocus: true });
-  });
-
-  el.storeCheckoutButton?.addEventListener("click", openStoreCheckout);
-  el.storeCheckoutClose?.addEventListener("click", closeStoreCheckout);
-  el.storeCheckoutCancel?.addEventListener("click", closeStoreCheckout);
-  el.storeCheckoutForm?.addEventListener("submit", handleStoreCheckoutSubmit);
-}
-
-function getStoreProduct(productId) {
-  return Array.from(document.querySelectorAll("[data-store-product]"))
-    .find(product => product instanceof HTMLElement && product.dataset.storeProduct === productId);
-}
-
-function getStoreProductSizes(product) {
-  return String(product.dataset.storeSizes || "S,M,L,XL")
-    .split(",")
-    .map(size => size.trim())
-    .filter(Boolean);
-}
-
-function addStoreProduct(productId) {
-  const product = getStoreProduct(productId);
-  if (!(product instanceof HTMLElement)) return;
-
-  const price = Number(product.dataset.storePrice);
-  if (!Number.isFinite(price)) return;
-
-  const sizes = getStoreProductSizes(product);
-  const size = sizes[0] || "M";
-  const existingItem = state.storeBag.find(item => item.productId === productId && item.size === size);
-
-  if (existingItem) {
-    existingItem.quantity = clampStoreQuantity(existingItem.quantity + 1);
-    renderStoreBag();
-    return;
-  }
-
-  state.storeBag.push({
-    cartId: state.storeNextCartId,
-    productId,
-    name: product.dataset.storeName || "PRODUCTO",
-    price,
-    quantity: 1,
-    size,
-    sizes,
-  });
-  state.storeNextCartId += 1;
-
-  renderStoreBag();
-}
-
-function removeStoreItem(cartId) {
-  state.storeBag = state.storeBag.filter(item => item.cartId !== cartId);
-  renderStoreBag();
-  syncGameSelection("store-window-main");
-}
-
-function changeStoreItemSize(cartId, nextSize) {
-  const item = state.storeBag.find(cartItem => cartItem.cartId === cartId);
-  if (!item || !item.sizes.includes(nextSize)) return;
-
-  item.size = nextSize;
-  renderStoreBag();
-}
-
-function changeStoreItemQuantity(cartId, nextQuantity, options = {}) {
-  const item = state.storeBag.find(cartItem => cartItem.cartId === cartId);
-  if (!item) return;
-
-  item.quantity = clampStoreQuantity(nextQuantity);
-  renderStoreBag();
-
-  if (options.keepFocus) {
-    const quantityInput = el.storeBagList?.querySelector(`[data-store-quantity="${cartId}"]`);
-    if (quantityInput instanceof HTMLInputElement) {
-      quantityInput.focus();
-      quantityInput.select();
-    }
-  }
-}
-
-function clampStoreQuantity(value) {
-  const quantity = Number.parseInt(value, 10);
-  if (!Number.isFinite(quantity)) return 1;
-  return Math.min(Math.max(quantity, 1), 99);
-}
-
-function getStoreItemCount() {
-  return state.storeBag.reduce((sum, item) => sum + clampStoreQuantity(item.quantity), 0);
-}
-
-function getStoreSubtotal() {
-  return state.storeBag.reduce((sum, item) => {
-    return sum + (Number(item.price) || 0) * clampStoreQuantity(item.quantity);
-  }, 0);
-}
-
-function getStoreShipping() {
-  return getStoreItemCount() > 0 ? STORE_SHIPPING_FEE : 0;
-}
-
-function getStoreTotal() {
-  return getStoreSubtotal() + getStoreShipping();
-}
-
-function formatStoreMoney(value, options = {}) {
-  const amount = Number(value) || 0;
-  const digits = options.cents ? 2 : 0;
-  return `RD$${amount.toLocaleString("en-US", {
-    minimumFractionDigits: digits,
-    maximumFractionDigits: digits,
-  })}`;
-}
-
-function renderStoreBag() {
-  if (!el.storeBagList || !el.storeBagCount || !el.storeTotal || !el.storeRegisterTotal) return;
-
-  const itemCount = getStoreItemCount();
-  const shipping = getStoreShipping();
-  const total = getStoreTotal();
-  el.storeBagCount.textContent = `${itemCount} ${itemCount === 1 ? "ITEM" : "ITEMS"}`;
-  if (el.storeShipping) el.storeShipping.textContent = formatStoreMoney(shipping);
-  el.storeTotal.textContent = formatStoreMoney(total);
-  el.storeRegisterTotal.textContent = formatStoreMoney(total, { cents: true });
-
-  if (el.storeCheckoutButton instanceof HTMLButtonElement) {
-    el.storeCheckoutButton.disabled = itemCount === 0;
-  }
-
-  if (!itemCount) closeStoreCheckout();
-
-  el.storeBagList.innerHTML = "";
-
-  if (!itemCount) {
-    const emptyItem = document.createElement("li");
-    emptyItem.className = "store-bag-empty";
-    emptyItem.textContent = "BOLSA VACIA";
-    el.storeBagList.appendChild(emptyItem);
-    return;
-  }
-
-  state.storeBag.forEach(item => {
-    const lineItem = document.createElement("li");
-    lineItem.className = "store-bag-item";
-
-    const itemMain = document.createElement("div");
-    itemMain.className = "store-bag-main";
-
-    const copy = document.createElement("span");
-    copy.className = "store-bag-name";
-    copy.textContent = item.name;
-
-    const price = document.createElement("strong");
-    price.textContent = formatStoreMoney(item.price * clampStoreQuantity(item.quantity));
-
-    itemMain.append(copy, price);
-
-    const options = document.createElement("div");
-    options.className = "store-bag-options";
-
-    const sizeLabel = document.createElement("label");
-    sizeLabel.className = "store-bag-field";
-    const sizeCaption = document.createElement("span");
-    sizeCaption.textContent = "TALLA";
-    const sizeSelect = document.createElement("select");
-    sizeSelect.className = "store-size-select";
-    sizeSelect.dataset.storeSize = String(item.cartId);
-    item.sizes.forEach(size => {
-      const option = document.createElement("option");
-      option.value = size;
-      option.textContent = size;
-      option.selected = size === item.size;
-      sizeSelect.appendChild(option);
-    });
-    sizeLabel.append(sizeCaption, sizeSelect);
-
-    const quantityLabel = document.createElement("label");
-    quantityLabel.className = "store-bag-field";
-    const quantityCaption = document.createElement("span");
-    quantityCaption.textContent = "CANT";
-
-    const quantityControl = document.createElement("div");
-    quantityControl.className = "store-qty-control";
-
-    const decreaseButton = document.createElement("button");
-    decreaseButton.className = "store-qty-button game-target";
-    decreaseButton.type = "button";
-    decreaseButton.dataset.storeQtyAction = "decrease";
-    decreaseButton.dataset.storeQtyCart = String(item.cartId);
-    decreaseButton.dataset.gameId = `store-qty-minus-${item.cartId}`;
-    decreaseButton.setAttribute("aria-label", `Bajar cantidad de ${item.name}`);
-    decreaseButton.textContent = "-";
-
-    const quantityInput = document.createElement("input");
-    quantityInput.className = "store-qty-input";
-    quantityInput.type = "number";
-    quantityInput.min = "1";
-    quantityInput.max = "99";
-    quantityInput.inputMode = "numeric";
-    quantityInput.value = String(clampStoreQuantity(item.quantity));
-    quantityInput.dataset.storeQuantity = String(item.cartId);
-    quantityInput.setAttribute("aria-label", `Cantidad de ${item.name}`);
-
-    const increaseButton = document.createElement("button");
-    increaseButton.className = "store-qty-button game-target";
-    increaseButton.type = "button";
-    increaseButton.dataset.storeQtyAction = "increase";
-    increaseButton.dataset.storeQtyCart = String(item.cartId);
-    increaseButton.dataset.gameId = `store-qty-plus-${item.cartId}`;
-    increaseButton.setAttribute("aria-label", `Subir cantidad de ${item.name}`);
-    increaseButton.textContent = "+";
-
-    quantityControl.append(decreaseButton, quantityInput, increaseButton);
-    quantityLabel.append(quantityCaption, quantityControl);
-    options.append(sizeLabel, quantityLabel);
-
-    const removeButton = document.createElement("button");
-    removeButton.className = "store-remove-button game-target";
-    removeButton.type = "button";
-    removeButton.dataset.storeRemove = String(item.cartId);
-    removeButton.dataset.gameId = `store-remove-${item.cartId}`;
-    removeButton.setAttribute("aria-label", `Quitar ${item.name} del carrito`);
-    removeButton.textContent = "QUITAR";
-
-    lineItem.append(itemMain, options, removeButton);
-    el.storeBagList.appendChild(lineItem);
-  });
-
-  syncGameTargetListeners();
-}
-
-function initStoreProduct3D() {
-  if (typeof THREE === "undefined") return;
-  document.querySelectorAll(".store-product-photo").forEach(setupStoreProduct3D);
-}
-
-function setupStoreProduct3D(photoEl) {
-  const img = photoEl.querySelector("img");
-  if (!(img instanceof HTMLImageElement)) return;
-
-  const canvas = document.createElement("canvas");
-  canvas.className = "store-product-3d-canvas";
-  photoEl.appendChild(canvas);
-
-  const RENDER_SCALE = 0.34;
-  const SNAP_GRID = 46;
-  const BULGE_AMOUNT = 0.22;
-
-  const card = {
-    renderer: null,
-    scene: null,
-    camera: null,
-    group: null,
-    texture: null,
-    frameId: null,
-    ready: false,
-    hovering: false,
-    dragging: false,
-    lastX: 0,
-    lastY: 0,
-    rotY: -0.35,
-    rotX: 0.14,
-    velocity: 0.006,
-  };
-
-  function ensureScene() {
-    if (card.ready) return;
-    card.ready = true;
-
-    const width = Math.max(photoEl.clientWidth, 1);
-    const height = Math.max(photoEl.clientHeight, 1);
-
-    card.renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: true });
-    card.renderer.setPixelRatio(1);
-    card.renderer.setClearColor(0x000000, 0);
-    card.renderer.setSize(Math.round(width * RENDER_SCALE), Math.round(height * RENDER_SCALE), false);
-
-    card.scene = new THREE.Scene();
-    card.camera = new THREE.PerspectiveCamera(28, width / height, 0.1, 20);
-    card.camera.position.set(0, 0, 3.3);
-
-    card.texture = new THREE.Texture(img);
-    card.texture.magFilter = THREE.NearestFilter;
-    card.texture.minFilter = THREE.NearestFilter;
-    card.texture.generateMipmaps = false;
-    card.texture.needsUpdate = true;
-
-    if (!img.complete) {
-      img.addEventListener("load", () => { card.texture.needsUpdate = true; }, { once: true });
-    }
-
-    const geometry = new THREE.PlaneGeometry(2.1, 2.1, 26, 26);
-
-    const vertexShader = `
-      varying vec2 vUv;
-      uniform float snapGrid;
-      uniform float bulge;
-      uniform float side;
-      void main() {
-        vUv = uv;
-        float nx = uv.x * 2.0 - 1.0;
-        float ny = uv.y * 2.0 - 1.0;
-        float dome = (1.0 - nx * nx) * (1.0 - ny * ny);
-        vec3 displaced = position;
-        displaced.z += dome * bulge * side;
-
-        vec4 clip = projectionMatrix * modelViewMatrix * vec4(displaced, 1.0);
-        clip.xy = floor(clip.xy / clip.w * snapGrid) / snapGrid * clip.w;
-        gl_Position = clip;
-      }
-    `;
-
-    const fragmentShader = `
-      uniform sampler2D map;
-      uniform float shade;
-      varying vec2 vUv;
-      void main() {
-        vec4 texel = texture2D(map, vUv);
-        if (texel.a < 0.2) discard;
-        float levels = 30.0;
-        float dither = (fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453) - 0.5) / levels;
-        vec3 color = texel.rgb * shade;
-        color = floor((color + dither) * levels + 0.5) / levels;
-        gl_FragColor = vec4(color, 1.0);
-      }
-    `;
-
-    function makeMaterial(sideValue, shadeValue) {
-      return new THREE.ShaderMaterial({
-        uniforms: {
-          map: { value: card.texture },
-          snapGrid: { value: SNAP_GRID },
-          bulge: { value: BULGE_AMOUNT },
-          side: { value: sideValue },
-          shade: { value: shadeValue },
-        },
-        vertexShader,
-        fragmentShader,
-        transparent: true,
-      });
-    }
-
-    const frontMaterial = makeMaterial(1, 1.0);
-    const frontMesh = new THREE.Mesh(geometry, frontMaterial);
-
-    const backMaterial = makeMaterial(1, 0.45);
-    const backMesh = new THREE.Mesh(geometry, backMaterial);
-    backMesh.rotation.y = Math.PI;
-    backMesh.position.z = -0.06;
-
-    card.group = new THREE.Group();
-    card.group.add(backMesh);
-    card.group.add(frontMesh);
-    card.group.rotation.x = card.rotX;
-    card.group.rotation.y = card.rotY;
-    card.scene.add(card.group);
-  }
-
-  function renderFrame() {
-    if (!card.dragging) {
-      card.rotY += card.velocity;
-    }
-    card.group.rotation.y = card.rotY;
-    card.group.rotation.x = card.rotX;
-    card.renderer.render(card.scene, card.camera);
-    card.frameId = requestAnimationFrame(renderFrame);
-  }
-
-  function start() {
-    ensureScene();
-    photoEl.classList.add("is-3d-active");
-    if (!card.frameId) renderFrame();
-  }
-
-  function toggle3D() {
-    if (photoEl.classList.contains("is-3d-active")) {
-      stop();
-    } else {
-      start();
-    }
-  }
-
-  function stop() {
-    photoEl.classList.remove("is-3d-active");
-    if (card.frameId) {
-      cancelAnimationFrame(card.frameId);
-      card.frameId = null;
-    }
-  }
-
-  function onPointerMove(event) {
-    if (!card.dragging) return;
-    const deltaX = event.clientX - card.lastX;
-    const deltaY = event.clientY - card.lastY;
-    card.lastX = event.clientX;
-    card.lastY = event.clientY;
-    card.rotY += deltaX * 0.012;
-    card.rotX += deltaY * 0.012;
-    card.rotX = Math.max(-1.1, Math.min(1.1, card.rotX));
-  }
-
-  function onPointerUp() {
-    card.dragging = false;
-    photoEl.classList.remove("is-dragging");
-    window.removeEventListener("pointermove", onPointerMove);
-    window.removeEventListener("pointerup", onPointerUp);
-    // On touch devices or when not hovering, we might want to keep it active or not
-    // If we want it to stay active until clicked again, we don't call stop() here
-    if (!isPhoneDevice() && !card.hovering) stop();
-  }
-
-  function onPointerDown(event) {
-    // Only toggle if not already dragging/active or if specifically clicking to toggle
-    if (isPhoneDevice()) {
-      if (!photoEl.classList.contains("is-3d-active")) {
-        start();
-        return; // Let first click just start it
-      }
-    }
-
-    event.preventDefault();
-    card.dragging = true;
-    photoEl.classList.add("is-dragging");
-    card.lastX = event.clientX;
-    card.lastY = event.clientY;
-    window.addEventListener("pointermove", onPointerMove);
-    window.addEventListener("pointerup", onPointerUp);
-  }
-
-  if (!isPhoneDevice()) {
-    photoEl.addEventListener("pointerenter", () => {
-      card.hovering = true;
-      start();
-    });
-
-    photoEl.addEventListener("pointerleave", () => {
-      card.hovering = false;
-      if (!card.dragging) stop();
-    });
-  } else {
-    // For cellphones, we use click to toggle/start
-    photoEl.addEventListener("click", (e) => {
-       // if we click the photo area but not dragging
-       if (!card.dragging && !photoEl.classList.contains("is-3d-active")) {
-           start();
-       }
-    });
-  }
-
-  canvas.addEventListener("pointerdown", onPointerDown);
-
-  window.addEventListener("resize", () => {
-    if (!card.ready) return;
-    const width = Math.max(photoEl.clientWidth, 1);
-    const height = Math.max(photoEl.clientHeight, 1);
-    card.camera.aspect = width / height;
-    card.camera.updateProjectionMatrix();
-    card.renderer.setSize(Math.round(width * RENDER_SCALE), Math.round(height * RENDER_SCALE), false);
-  });
-}
-
-function openStoreCheckout() {
-  if (!el.storeCheckoutModal || !el.storeCheckoutForm || getStoreItemCount() === 0) return;
-
-  el.storeCheckoutForm.reset();
-  clearStoreCheckoutValidation();
-  el.storeCheckoutModal.hidden = false;
-
-  window.setTimeout(() => {
-    const nameInput = getCheckoutField("name");
-    if (nameInput instanceof HTMLInputElement) nameInput.focus();
-  }, 0);
-}
-
-function closeStoreCheckout() {
-  if (!el.storeCheckoutModal) return;
-
-  el.storeCheckoutModal.hidden = true;
-  clearStoreCheckoutValidation();
-  if (el.storeCheckoutButton instanceof HTMLButtonElement && !el.storeCheckoutButton.disabled) {
-    el.storeCheckoutButton.focus();
-  }
-}
-
-function handleStoreCheckoutSubmit(event) {
-  event.preventDefault();
-  if (!el.storeCheckoutForm) return;
-
-  const formData = new FormData(el.storeCheckoutForm);
-  const customer = {
-    name: String(formData.get("name") || "").trim(),
-    email: String(formData.get("email") || "").trim(),
-    phone: String(formData.get("phone") || "").trim(),
-    address: String(formData.get("address") || "").trim(),
-    city: String(formData.get("city") || "").trim(),
-    country: String(formData.get("country") || "").trim(),
-    zip: String(formData.get("zip") || "").trim(),
-  };
-  const paymentMethod = String(formData.get("paymentMethod") || "").trim();
-
-  if (!validateStoreCheckout(customer, paymentMethod)) {
-    setStoreCheckoutError(true);
-    return;
-  }
-
-  const cart = state.storeBag.map(item => ({
-    productId: item.productId,
-    name: item.name,
-    size: item.size,
-    quantity: clampStoreQuantity(item.quantity),
-    unitPrice: item.price,
-    total: item.price * clampStoreQuantity(item.quantity),
-  }));
-  const total = getStoreTotal();
-  const order = {
-    customer,
-    items: cart,
-    subtotal: getStoreSubtotal(),
-    shipping: getStoreShipping(),
-    total,
-    paymentMethod,
-    status: "Pending",
-    createdAt: new Date(),
-  };
-
-  console.log(order);
-  closeStoreCheckout();
-}
-
-function validateStoreCheckout(customer, paymentMethod) {
-  clearStoreCheckoutValidation();
-
-  const invalidFields = [];
-  if (!customer.name) invalidFields.push("name");
-  if (!isValidStoreEmail(customer.email)) invalidFields.push("email");
-  if (!customer.address) invalidFields.push("address");
-  if (!paymentMethod) invalidFields.push("paymentMethod");
-
-  invalidFields.forEach(fieldName => {
-    if (fieldName === "paymentMethod") {
-      document.querySelector(".store-payment-fieldset")?.classList.add("is-invalid");
-      return;
-    }
-
-    const field = getCheckoutField(fieldName);
-    field?.classList.add("is-invalid");
-  });
-
-  return invalidFields.length === 0;
-}
-
-function getCheckoutField(fieldName) {
-  return el.storeCheckoutForm?.elements.namedItem(fieldName) || null;
-}
-
-function isValidStoreEmail(value) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-}
-
-function clearStoreCheckoutValidation() {
-  setStoreCheckoutError(false);
-  el.storeCheckoutForm?.querySelectorAll(".is-invalid").forEach(field => {
-    field.classList.remove("is-invalid");
-  });
-}
-
-function setStoreCheckoutError(isVisible) {
-  if (!el.storeCheckoutError) return;
-  el.storeCheckoutError.hidden = !isVisible;
-}
+/* ==========================================================================
+   4. MANEJO DE EVENTOS GENERALES
+   ========================================================================== */
 
 function bindEvents() {
   ["pointerdown", "touchend", "keydown"].forEach(eventName => {
@@ -1168,6 +452,118 @@ function bindEvents() {
   bindGameNavigation();
 }
 
+/* ==========================================================================
+   5. ADAPTABILIDAD Y VIEWPORT
+   ========================================================================== */
+
+function handleViewportChange() {
+  syncViewportMetrics();
+  syncDeviceClasses();
+  updateOrientationGate();
+
+  if (!state.bootStarted && !state.bootComplete && !shouldPauseForPhoneOrientation()) {
+    void launchBootSequence();
+  }
+}
+
+function syncViewportMetrics() {
+  const viewport = window.visualViewport;
+  const width = Math.round(viewport?.width || window.innerWidth || document.documentElement.clientWidth || 0);
+  const height = Math.round(viewport?.height || window.innerHeight || document.documentElement.clientHeight || 0);
+
+  if (width > 0) {
+    document.documentElement.style.setProperty("--app-width", `${width}px`);
+  }
+
+  if (height > 0) {
+    document.documentElement.style.setProperty("--app-height", `${height}px`);
+  }
+}
+
+function syncDeviceClasses() {
+  const phoneDevice = isPhoneDevice();
+  const portraitOrientation = isPortraitOrientation();
+  const hasOpenProgram = Object.values(state.windows).some(windowState => windowState.open && !windowState.minimized);
+  const hasFullscreenProgram = Object.values(state.windows).some(windowState => (
+    windowState.open
+    && !windowState.minimized
+    && windowState.maximized
+  ));
+
+  document.body.classList.toggle("is-phone-device", phoneDevice);
+  document.body.classList.toggle("is-phone-portrait", phoneDevice && portraitOrientation);
+  document.body.classList.toggle("is-phone-landscape", phoneDevice && !portraitOrientation);
+  document.body.classList.toggle("has-phone-open-window", phoneDevice && hasOpenProgram);
+  document.body.classList.toggle("has-phone-fullscreen-window", phoneDevice && hasFullscreenProgram);
+}
+
+function shouldPauseForPhoneOrientation() {
+  return false;
+}
+
+function isPhoneDevice() {
+  const mobileUserAgent = navigator.userAgentData?.mobile
+    ?? /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(navigator.userAgent);
+  const shortSide = Math.min(window.innerWidth, window.innerHeight);
+  const longSide = Math.max(window.innerWidth, window.innerHeight);
+  const touchCapable = navigator.maxTouchPoints > 0
+    || window.matchMedia("(pointer: coarse)").matches
+    || window.matchMedia("(hover: none)").matches;
+  const compactLandscapeViewport = window.innerHeight <= 540 && window.innerWidth <= 950;
+
+  return Boolean(shortSide <= 540 && longSide <= 1024 && (mobileUserAgent || touchCapable || compactLandscapeViewport));
+}
+
+function isPortraitOrientation() {
+  return window.matchMedia("(orientation: portrait)").matches || window.innerHeight > window.innerWidth;
+}
+
+function updateOrientationGate() {
+  if (el.orientationGate) {
+    el.orientationGate.hidden = true;
+  }
+
+  document.body.classList.remove("orientation-gate-visible");
+
+  if (!state.bootStarted) {
+    el.bootSequence.hidden = false;
+  }
+
+  if (state.bootComplete) {
+    el.appShell.hidden = false;
+  }
+}
+
+/* ==========================================================================
+   6.SISTEMA DE VENTANAS Y MENÚ INICIO
+   ========================================================================== */
+
+function toggleStartMenu() {
+  if (state.startMenuOpen) {
+    closeStartMenu();
+    return;
+  }
+
+  openStartMenu();
+}
+
+function openStartMenu() {
+  if (!el.startMenu || !el.startButton) return;
+
+  state.startMenuOpen = true;
+  el.startMenu.hidden = false;
+  el.startButton.classList.add("is-open");
+  syncGameSelection("start-reproductor");
+}
+
+function closeStartMenu() {
+  if (!el.startMenu || !el.startButton || !state.startMenuOpen) return;
+
+  state.startMenuOpen = false;
+  el.startMenu.hidden = true;
+  el.startButton.classList.remove("is-open");
+}
+
 function handleWindowAction(action, program) {
   if (!program) return;
 
@@ -1195,8 +591,6 @@ function beginWindowDrag(event, program) {
   if (event.target.closest("[data-window-action]")) return;
 
   if (isPhoneDevice()) {
-    // La tienda (y el resto de ventanas) es estatica en telefono: no se
-    // arrastra, solo evitamos que el toque dispare algun gesto nativo.
     event.preventDefault();
     return;
   }
@@ -1477,6 +871,17 @@ function getDefaultSelectionId(program) {
   return `nav-${state.panelView}`;
 }
 
+/* ==========================================================================
+   7. REPRODUCTOR DE AUDIO Y VISUALIZADOR
+   ========================================================================== */
+
+function getCensoredTrackTitle(track, index = state.currentIndex) {
+  const trackNumber = Number.isFinite(index) && index >= 0
+    ? String(index + 1).padStart(2, "0")
+    : "--";
+  return track && track.title ? track.title : `PISTA ${trackNumber}`;
+}
+
 function buildSpectrum() {
   const fragment = document.createDocumentFragment();
   for (let i = 0; i < 32; i++) {
@@ -1519,11 +924,10 @@ function renderPlayerPanel() {
     const row = document.createElement("div");
     row.className = "playlist-row";
 
-  const title = document.createElement("span");
-  title.className = "playlist-title";
-  // aplicar desenfoque visual en lugar de reemplazar el texto
-  title.classList.add("censored");
-  title.textContent = `${index + 1}. ${getCensoredTrackTitle(track, index)}`;
+    const title = document.createElement("span");
+    title.className = "playlist-title";
+    title.classList.add("censored");
+    title.textContent = `${index + 1}. ${getCensoredTrackTitle(track, index)}`;
 
     const duration = document.createElement("span");
     duration.className = "playlist-duration";
@@ -1558,6 +962,256 @@ function resetPlayerToEmptyState() {
   el.timeDisplay.textContent = "00:00";
   updateTransportState("■ SIN PISTAS");
   renderPlayerPanel();
+}
+
+async function selectTrack(index, autoPlay = false) {
+  const track = state.playlist[index];
+  if (!track) {
+    resetPlayerToEmptyState();
+    return;
+  }
+
+  state.currentIndex = index;
+  el.trackName.textContent = getCensoredTrackTitle(track, index);
+  el.trackName.classList.add("censored");
+  el.panelTrackTitle.textContent = getCensoredTrackTitle(track, index);
+  el.panelTrackTitle.classList.add("censored");
+  el.panelTrackArtist.textContent = track.artist || albumConfig.artist;
+
+  if (track.src) {
+    const resolvedTrackSrc = resolveAssetPath(track.src);
+    if (el.audio.src !== resolvedTrackSrc) el.audio.src = resolvedTrackSrc;
+    el.audio.load();
+    updateTransportState(autoPlay ? "... CARGANDO" : "● LISTO");
+  } else {
+    el.audio.pause();
+    el.audio.removeAttribute("src");
+    el.audio.load();
+    el.seekBar.value = "0";
+    el.timeDisplay.textContent = "00:00";
+    updateTransportState("■ SIN AUDIO");
+  }
+
+  renderPlayerPanel();
+  if (autoPlay && track.src) await playCurrentTrack();
+}
+
+async function playCurrentTrack() {
+  const track = state.playlist[state.currentIndex];
+  if (!track?.src) {
+    updateTransportState(state.playlist.length ? "■ SIN RUTA" : "■ SIN PISTAS");
+    return;
+  }
+
+  stopStoryVoice();
+  await ensureAudioAnalyser();
+  if (state.audioContext?.state === "suspended") await state.audioContext.resume();
+
+  try {
+    await el.audio.play();
+    updateTransportState("▶ SONANDO");
+  } catch (error) {
+    updateTransportState("✕ ERROR");
+    console.error(error);
+  }
+}
+
+function pauseCurrentTrack() {
+  if (!state.playlist.length) {
+    updateTransportState("■ SIN PISTAS");
+    return;
+  }
+  el.audio.pause();
+  updateTransportState("❚❚ PAUSA");
+}
+
+function stopCurrentTrack() {
+  if (!state.playlist.length) {
+    resetPlayerToEmptyState();
+    return;
+  }
+  el.audio.pause();
+  el.audio.currentTime = 0;
+  el.seekBar.value = "0";
+  el.timeDisplay.textContent = "00:00";
+  updateTransportState("■ DETENIDO");
+}
+
+async function jumpTrack(direction) {
+  if (!state.playlist.length) {
+    updateTransportState("■ SIN PISTAS");
+    return;
+  }
+
+  const nextIndex = resolveNextIndex(direction);
+  const autoPlay = !el.audio.paused && Boolean(el.audio.src);
+  await selectTrack(nextIndex, autoPlay);
+}
+
+function resolveNextIndex(direction) {
+  if (!state.playlist.length) return -1;
+
+  if (state.shuffle && state.playlist.length > 1) {
+    let randomIndex = state.currentIndex;
+    while (randomIndex === state.currentIndex) {
+      randomIndex = Math.floor(Math.random() * state.playlist.length);
+    }
+    return randomIndex;
+  }
+
+  const lastIndex = state.playlist.length - 1;
+  let nextIndex = state.currentIndex + direction;
+  if (nextIndex < 0) return state.repeat ? lastIndex : 0;
+  if (nextIndex > lastIndex) return state.repeat ? 0 : lastIndex;
+  return nextIndex;
+}
+
+function handleMetadataLoad() {
+  const track = state.playlist[state.currentIndex];
+  if (!track) return;
+  track.duration = formatTime(el.audio.duration);
+  renderPlayerPanel();
+  syncProgress();
+}
+
+function handleTrackEnded() {
+  if (!state.playlist.length) return;
+
+  if (!state.repeat && state.currentIndex === state.playlist.length - 1) {
+    stopCurrentTrack();
+    return;
+  }
+
+  jumpTrack(1);
+}
+
+function handleTrackError() {
+  const errorCode = el.audio.error?.code;
+  const track = state.playlist[state.currentIndex];
+  updateTransportState("✕ TRACK ERROR");
+  console.error("No se pudo cargar el track", {
+    title: getCensoredTrackTitle(track, state.currentIndex),
+    src: track?.src,
+    resolvedSrc: el.audio.currentSrc,
+    errorCode,
+  });
+}
+
+function syncProgress() {
+  if (!el.audio.duration) {
+    el.seekBar.value = "0";
+    el.timeDisplay.textContent = "00:00";
+    return;
+  }
+
+  const progress = (el.audio.currentTime / el.audio.duration) * 100;
+  el.seekBar.value = String(progress);
+  el.timeDisplay.textContent = formatTime(el.audio.currentTime);
+}
+
+async function ensureAudioAnalyser() {
+  if (state.audioContext) return;
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextClass) return;
+
+  state.audioContext = new AudioContextClass();
+  const source = state.audioContext.createMediaElementSource(el.audio);
+  state.analyser = state.audioContext.createAnalyser();
+  state.analyser.fftSize = 128;
+  source.connect(state.analyser);
+  state.analyser.connect(state.audioContext.destination);
+  state.frequencyData = new Uint8Array(state.analyser.frequencyBinCount);
+}
+
+function startVisualizer() {
+  const draw = () => {
+    if (state.analyser && !el.audio.paused) {
+      state.analyser.getByteFrequencyData(state.frequencyData);
+      state.bars.forEach((bar, index) => {
+        const sample = state.frequencyData[index % state.frequencyData.length] / 255;
+        const scale = Math.max(0.12, sample);
+        bar.style.transform = `scaleY(${scale})`;
+        bar.style.opacity = String(0.55 + sample * 0.45);
+      });
+    } else {
+      state.idlePhase += 0.06;
+      state.bars.forEach((bar, index) => {
+        const pulse = (Math.sin(state.idlePhase + index * 0.31) + 1) / 2;
+        bar.style.transform = `scaleY(${0.12 + pulse * 0.42})`;
+        bar.style.opacity = String(0.4 + pulse * 0.4);
+      });
+    }
+
+    requestAnimationFrame(draw);
+  };
+
+  draw();
+}
+
+function applyPlayerVisuals() {
+  if (albumConfig.artwork) {
+    const artworkPath = resolveAssetPath(albumConfig.artwork);
+    el.coverArt.style.backgroundImage = `url("${artworkPath}")`;
+    el.coverArt.classList.add("has-image");
+    el.coverArt.classList.remove("has-visual");
+    el.miniCoverImage.src = artworkPath;
+    el.miniCover.hidden = false;
+  } else {
+    el.coverArt.style.removeProperty("background-image");
+    el.coverArt.classList.remove("has-image");
+    el.coverArt.classList.add("has-visual");
+    el.miniCoverImage.removeAttribute("src");
+    el.miniCover.hidden = true;
+  }
+
+  el.miniCover.classList.remove("has-visual");
+}
+
+function updateTransportState(label) {
+  el.transportState.textContent = label;
+}
+
+/* ==========================================================================
+   8. VISTAS DE CONTENIDO (PANELES)
+   ========================================================================== */
+
+function setPanelView(view) {
+  if (!view) return;
+  if (view !== "historia") {
+    stopStoryVoice();
+  }
+  if (view === "historia" && state.panelView !== "historia") {
+    state.storyMode = null;
+    stopStoryVoice();
+  }
+  state.panelView = view;
+
+  el.navItems.forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.panel === view);
+  });
+
+  const isPlayerView = view === "reproductor";
+  el.mainStage.classList.toggle("is-hidden", !isPlayerView);
+  el.playlistPanel.classList.toggle("is-hidden", !isPlayerView);
+  el.contentWindow.hidden = isPlayerView;
+  el.contentWindow.classList.toggle("is-visible", !isPlayerView);
+
+  if (isPlayerView) {
+    renderPlayerPanel();
+    return;
+  }
+
+  if (view === "creditos") {
+    renderCreditsWindow();
+    return;
+  }
+
+  if (view === "historia") {
+    renderStoryWindow();
+    return;
+  }
+
+  renderArtworksWindow();
 }
 
 function renderCreditsWindow() {
@@ -1852,208 +1506,9 @@ function renderGameWindow() {
   syncGameSelection("nav-juego");
 }
 
-async function selectTrack(index, autoPlay = false) {
-  const track = state.playlist[index];
-  if (!track) {
-    resetPlayerToEmptyState();
-    return;
-  }
-
-  state.currentIndex = index;
-  el.trackName.textContent = getCensoredTrackTitle(track, index);
-  el.trackName.classList.add("censored");
-  el.panelTrackTitle.textContent = getCensoredTrackTitle(track, index);
-  el.panelTrackTitle.classList.add("censored");
-  el.panelTrackArtist.textContent = track.artist || albumConfig.artist;
-
-  if (track.src) {
-    const resolvedTrackSrc = resolveAssetPath(track.src);
-    if (el.audio.src !== resolvedTrackSrc) el.audio.src = resolvedTrackSrc;
-    el.audio.load();
-    updateTransportState(autoPlay ? "... CARGANDO" : "● LISTO");
-  } else {
-    el.audio.pause();
-    el.audio.removeAttribute("src");
-    el.audio.load();
-    el.seekBar.value = "0";
-    el.timeDisplay.textContent = "00:00";
-    updateTransportState("■ SIN AUDIO");
-  }
-
-  renderPlayerPanel();
-  if (autoPlay && track.src) await playCurrentTrack();
-}
-
-async function playCurrentTrack() {
-  const track = state.playlist[state.currentIndex];
-  if (!track?.src) {
-    updateTransportState(state.playlist.length ? "■ SIN RUTA" : "■ SIN PISTAS");
-    return;
-  }
-
-  stopStoryVoice();
-  await ensureAudioAnalyser();
-  if (state.audioContext?.state === "suspended") await state.audioContext.resume();
-
-  try {
-    await el.audio.play();
-    updateTransportState("▶ SONANDO");
-  } catch (error) {
-    updateTransportState("✕ ERROR");
-    console.error(error);
-  }
-}
-
-function pauseCurrentTrack() {
-  if (!state.playlist.length) {
-    updateTransportState("■ SIN PISTAS");
-    return;
-  }
-  el.audio.pause();
-  updateTransportState("❚❚ PAUSA");
-}
-
-function stopCurrentTrack() {
-  if (!state.playlist.length) {
-    resetPlayerToEmptyState();
-    return;
-  }
-  el.audio.pause();
-  el.audio.currentTime = 0;
-  el.seekBar.value = "0";
-  el.timeDisplay.textContent = "00:00";
-  updateTransportState("■ DETENIDO");
-}
-
-async function jumpTrack(direction) {
-  if (!state.playlist.length) {
-    updateTransportState("■ SIN PISTAS");
-    return;
-  }
-
-  const nextIndex = resolveNextIndex(direction);
-  const autoPlay = !el.audio.paused && Boolean(el.audio.src);
-  await selectTrack(nextIndex, autoPlay);
-}
-
-function resolveNextIndex(direction) {
-  if (!state.playlist.length) return -1;
-
-  if (state.shuffle && state.playlist.length > 1) {
-    let randomIndex = state.currentIndex;
-    while (randomIndex === state.currentIndex) {
-      randomIndex = Math.floor(Math.random() * state.playlist.length);
-    }
-    return randomIndex;
-  }
-
-  const lastIndex = state.playlist.length - 1;
-  let nextIndex = state.currentIndex + direction;
-  if (nextIndex < 0) return state.repeat ? lastIndex : 0;
-  if (nextIndex > lastIndex) return state.repeat ? 0 : lastIndex;
-  return nextIndex;
-}
-
-function handleMetadataLoad() {
-  const track = state.playlist[state.currentIndex];
-  if (!track) return;
-  track.duration = formatTime(el.audio.duration);
-  renderPlayerPanel();
-  syncProgress();
-}
-
-function handleTrackEnded() {
-  if (!state.playlist.length) return;
-
-  if (!state.repeat && state.currentIndex === state.playlist.length - 1) {
-    stopCurrentTrack();
-    return;
-  }
-
-  jumpTrack(1);
-}
-
-function handleTrackError() {
-  const errorCode = el.audio.error?.code;
-  const track = state.playlist[state.currentIndex];
-  updateTransportState("✕ TRACK ERROR");
-  console.error("No se pudo cargar el track", {
-    title: getCensoredTrackTitle(track, state.currentIndex),
-    src: track?.src,
-    resolvedSrc: el.audio.currentSrc,
-    errorCode,
-  });
-}
-
-function syncProgress() {
-  if (!el.audio.duration) {
-    el.seekBar.value = "0";
-    el.timeDisplay.textContent = "00:00";
-    return;
-  }
-
-  const progress = (el.audio.currentTime / el.audio.duration) * 100;
-  el.seekBar.value = String(progress);
-  el.timeDisplay.textContent = formatTime(el.audio.currentTime);
-}
-
-async function ensureAudioAnalyser() {
-  if (state.audioContext) return;
-  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-  if (!AudioContextClass) return;
-
-  state.audioContext = new AudioContextClass();
-  const source = state.audioContext.createMediaElementSource(el.audio);
-  state.analyser = state.audioContext.createAnalyser();
-  state.analyser.fftSize = 128;
-  source.connect(state.analyser);
-  state.analyser.connect(state.audioContext.destination);
-  state.frequencyData = new Uint8Array(state.analyser.frequencyBinCount);
-}
-
-function startVisualizer() {
-  const draw = () => {
-    if (state.analyser && !el.audio.paused) {
-      state.analyser.getByteFrequencyData(state.frequencyData);
-      state.bars.forEach((bar, index) => {
-        const sample = state.frequencyData[index % state.frequencyData.length] / 255;
-        const scale = Math.max(0.12, sample);
-        bar.style.transform = `scaleY(${scale})`;
-        bar.style.opacity = String(0.55 + sample * 0.45);
-      });
-    } else {
-      state.idlePhase += 0.06;
-      state.bars.forEach((bar, index) => {
-        const pulse = (Math.sin(state.idlePhase + index * 0.31) + 1) / 2;
-        bar.style.transform = `scaleY(${0.12 + pulse * 0.42})`;
-        bar.style.opacity = String(0.4 + pulse * 0.4);
-      });
-    }
-
-    requestAnimationFrame(draw);
-  };
-
-  draw();
-}
-
-function applyPlayerVisuals() {
-  if (albumConfig.artwork) {
-    const artworkPath = resolveAssetPath(albumConfig.artwork);
-    el.coverArt.style.backgroundImage = `url("${artworkPath}")`;
-    el.coverArt.classList.add("has-image");
-    el.coverArt.classList.remove("has-visual");
-    el.miniCoverImage.src = artworkPath;
-    el.miniCover.hidden = false;
-  } else {
-    el.coverArt.style.removeProperty("background-image");
-    el.coverArt.classList.remove("has-image");
-    el.coverArt.classList.add("has-visual");
-    el.miniCoverImage.removeAttribute("src");
-    el.miniCover.hidden = true;
-  }
-
-  el.miniCover.classList.remove("has-visual");
-}
+/* ==========================================================================
+   9. MÓDULO HISTORIA (VOZ EN OFF)
+   ========================================================================== */
 
 function initStoryVoiceover() {
   if (!albumConfig.story.voiceoverSrc) return;
@@ -2079,94 +1534,6 @@ function initStoryVoiceover() {
   });
 
   state.storyAudio = audio;
-}
-
-function initStartupSound() {
-  if (!albumConfig.startupSound?.src) return;
-
-  const audio = new Audio(resolveAssetPath(albumConfig.startupSound.src));
-  audio.preload = "auto";
-  audio.volume = albumConfig.startupSound.volume;
-
-  state.startupAudio = audio;
-}
-
-function playStartupSound() {
-  if (!state.startupAudio || state.startupPlayed) return;
-
-  state.startupPlayed = true;
-  state.startupPending = false;
-  state.startupAudio.currentTime = 0;
-
-  const playPromise = state.startupAudio.play();
-  if (playPromise?.catch) {
-    playPromise.catch(() => {
-      state.startupPlayed = false;
-      state.startupPending = true;
-    });
-  }
-}
-
-function retryPendingStartupSound() {
-  if (!state.startupPending || state.startupPlayed) return;
-  playStartupSound();
-}
-
-function resolveAssetPath(path) {
-  try {
-    const normalizedPath = String(path)
-      .split("/")
-      .map(segment => {
-        if (!segment) return segment;
-        try {
-          return encodeURIComponent(decodeURIComponent(segment));
-        } catch {
-          return encodeURIComponent(segment);
-        }
-      })
-      .join("/");
-
-    return new URL(normalizedPath, document.baseURI).href;
-  } catch {
-    return encodeURI(path);
-  }
-}
-
-function getPlaylistTotal() {
-  const total = state.playlist.reduce((sum, track) => sum + timeToSeconds(track.duration), 0);
-  return formatTime(total);
-}
-
-function getCreditValues(values) {
-  if (!Array.isArray(values) || !values.length) return ["Agregar en código"];
-  return values;
-}
-
-function tickClock() {
-  const refresh = () => {
-    const now = new Date();
-
-    el.currentClock.textContent = now.toLocaleTimeString("es-DO", {
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-    });
-
-    if (el.desktopClock) {
-      el.desktopClock.textContent = now.toLocaleTimeString("en-US", {
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
-      });
-    }
-  };
-
-  refresh();
-  setInterval(refresh, 1000);
-}
-
-function updateTransportState(label) {
-  el.transportState.textContent = label;
 }
 
 function setStoryMode(mode, options = {}) {
@@ -2270,6 +1637,902 @@ function getStoryVoiceStatusLabel() {
   return "○ LISTA PARA SONAR";
 }
 
+/* ==========================================================================
+   10. MÓDULO TIENDA (PRODUCTOS, CARRITO Y VISTA 3D)
+   ========================================================================== */
+
+function bindStoreEvents() {
+  document.querySelectorAll("[data-store-add]").forEach(button => {
+    button.addEventListener("click", () => {
+      addStoreProduct(button.dataset.storeAdd);
+    });
+  });
+
+  el.storeBagList?.addEventListener("click", event => {
+    if (!(event.target instanceof Element)) return;
+
+    const removeButton = event.target.closest("[data-store-remove]");
+    if (removeButton instanceof HTMLElement) {
+      removeStoreItem(Number(removeButton.dataset.storeRemove));
+      return;
+    }
+
+    const quantityButton = event.target.closest("[data-store-qty-action]");
+    if (!(quantityButton instanceof HTMLElement)) return;
+
+    const cartId = Number(quantityButton.dataset.storeQtyCart);
+    const action = quantityButton.dataset.storeQtyAction;
+    const item = state.storeBag.find(cartItem => cartItem.cartId === cartId);
+    if (!item) return;
+
+    const nextQuantity = action === "increase"
+      ? item.quantity + 1
+      : item.quantity - 1;
+    changeStoreItemQuantity(cartId, nextQuantity);
+  });
+
+  el.storeBagList?.addEventListener("change", event => {
+    if (!(event.target instanceof HTMLSelectElement)) return;
+    if (!event.target.matches("[data-store-size]")) return;
+
+    changeStoreItemSize(Number(event.target.dataset.storeSize), event.target.value);
+  });
+
+  el.storeBagList?.addEventListener("input", event => {
+    if (!(event.target instanceof HTMLInputElement)) return;
+    if (!event.target.matches("[data-store-quantity]")) return;
+
+    changeStoreItemQuantity(Number(event.target.dataset.storeQuantity), Number(event.target.value), { keepFocus: true });
+  });
+
+  el.storeCheckoutButton?.addEventListener("click", openStoreCheckout);
+  el.storeCheckoutClose?.addEventListener("click", closeStoreCheckout);
+  el.storeCheckoutCancel?.addEventListener("click", closeStoreCheckout);
+  el.storeCheckoutForm?.addEventListener("submit", handleStoreCheckoutSubmit);
+  el.storeTicketClose?.addEventListener("click", closeStoreTicket);
+  el.storeTicketDone?.addEventListener("click", closeStoreTicket);
+}
+
+function getStoreProduct(productId) {
+  return Array.from(document.querySelectorAll("[data-store-product]"))
+    .find(product => product instanceof HTMLElement && product.dataset.storeProduct === productId);
+}
+
+function getStoreProductSizes(product) {
+  return String(product.dataset.storeSizes || "S,M,L,XL")
+    .split(",")
+    .map(size => size.trim())
+    .filter(Boolean);
+}
+
+function addStoreProduct(productId) {
+  const product = getStoreProduct(productId);
+  if (!(product instanceof HTMLElement)) return;
+
+  const price = Number(product.dataset.storePrice);
+  if (!Number.isFinite(price)) return;
+
+  const sizes = getStoreProductSizes(product);
+  const size = sizes[0] || "M";
+  const existingItem = state.storeBag.find(item => item.productId === productId && item.size === size);
+
+  if (existingItem) {
+    existingItem.quantity = clampStoreQuantity(existingItem.quantity + 1);
+    renderStoreBag();
+    return;
+  }
+
+  state.storeBag.push({
+    cartId: state.storeNextCartId,
+    productId,
+    name: product.dataset.storeName || "PRODUCTO",
+    price,
+    quantity: 1,
+    size,
+    sizes,
+  });
+  state.storeNextCartId += 1;
+
+  renderStoreBag();
+}
+
+function removeStoreItem(cartId) {
+  state.storeBag = state.storeBag.filter(item => item.cartId !== cartId);
+  renderStoreBag();
+  syncGameSelection("store-window-main");
+}
+
+function changeStoreItemSize(cartId, nextSize) {
+  const item = state.storeBag.find(cartItem => cartItem.cartId === cartId);
+  if (!item || !item.sizes.includes(nextSize)) return;
+
+  item.size = nextSize;
+  renderStoreBag();
+}
+
+function changeStoreItemQuantity(cartId, nextQuantity, options = {}) {
+  const item = state.storeBag.find(cartItem => cartItem.cartId === cartId);
+  if (!item) return;
+
+  item.quantity = clampStoreQuantity(nextQuantity);
+  renderStoreBag();
+
+  if (options.keepFocus) {
+    const quantityInput = el.storeBagList?.querySelector(`[data-store-quantity="${cartId}"]`);
+    if (quantityInput instanceof HTMLInputElement) {
+      quantityInput.focus();
+      quantityInput.select();
+    }
+  }
+}
+
+function clampStoreQuantity(value) {
+  const quantity = Number.parseInt(value, 10);
+  if (!Number.isFinite(quantity)) return 1;
+  return Math.min(Math.max(quantity, 1), 99);
+}
+
+function getStoreItemCount() {
+  return state.storeBag.reduce((sum, item) => sum + clampStoreQuantity(item.quantity), 0);
+}
+
+function getStoreSubtotal() {
+  return state.storeBag.reduce((sum, item) => {
+    return sum + (Number(item.price) || 0) * clampStoreQuantity(item.quantity);
+  }, 0);
+}
+
+function getStoreShipping() {
+  return getStoreItemCount() > 0 ? STORE_SHIPPING_FEE : 0;
+}
+
+function getStoreTotal() {
+  return getStoreSubtotal() + getStoreShipping();
+}
+
+function formatStoreMoney(value, options = {}) {
+  const amount = Number(value) || 0;
+  const digits = options.cents ? 2 : 0;
+  return `RD$${amount.toLocaleString("en-US", {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  })}`;
+}
+
+function renderStoreBag() {
+  if (!el.storeBagList || !el.storeBagCount || !el.storeTotal || !el.storeRegisterTotal) return;
+
+  const itemCount = getStoreItemCount();
+  const shipping = getStoreShipping();
+  const total = getStoreTotal();
+  el.storeBagCount.textContent = `${itemCount} ${itemCount === 1 ? "ITEM" : "ITEMS"}`;
+  if (el.storeShipping) el.storeShipping.textContent = formatStoreMoney(shipping);
+  el.storeTotal.textContent = formatStoreMoney(total);
+  el.storeRegisterTotal.textContent = formatStoreMoney(total, { cents: true });
+
+  if (el.storeCheckoutButton instanceof HTMLButtonElement) {
+    el.storeCheckoutButton.disabled = itemCount === 0;
+  }
+
+  if (!itemCount) closeStoreCheckout();
+
+  el.storeBagList.innerHTML = "";
+
+  if (!itemCount) {
+    const emptyItem = document.createElement("li");
+    emptyItem.className = "store-bag-empty";
+    emptyItem.textContent = "BOLSA VACIA";
+    el.storeBagList.appendChild(emptyItem);
+    return;
+  }
+
+  state.storeBag.forEach(item => {
+    const lineItem = document.createElement("li");
+    lineItem.className = "store-bag-item";
+
+    const itemMain = document.createElement("div");
+    itemMain.className = "store-bag-main";
+
+    const copy = document.createElement("span");
+    copy.className = "store-bag-name";
+    copy.textContent = item.name;
+
+    const price = document.createElement("strong");
+    price.textContent = formatStoreMoney(item.price * clampStoreQuantity(item.quantity));
+
+    itemMain.append(copy, price);
+
+    const options = document.createElement("div");
+    options.className = "store-bag-options";
+
+    const sizeLabel = document.createElement("label");
+    sizeLabel.className = "store-bag-field";
+    const sizeCaption = document.createElement("span");
+    sizeCaption.textContent = "TALLA";
+    const sizeSelect = document.createElement("select");
+    sizeSelect.className = "store-size-select";
+    sizeSelect.dataset.storeSize = String(item.cartId);
+    item.sizes.forEach(size => {
+      const option = document.createElement("option");
+      option.value = size;
+      option.textContent = size;
+      option.selected = size === item.size;
+      sizeSelect.appendChild(option);
+    });
+    sizeLabel.append(sizeCaption, sizeSelect);
+
+    const quantityLabel = document.createElement("label");
+    quantityLabel.className = "store-bag-field";
+    const quantityCaption = document.createElement("span");
+    quantityCaption.textContent = "CANT";
+
+    const quantityControl = document.createElement("div");
+    quantityControl.className = "store-qty-control";
+
+    const decreaseButton = document.createElement("button");
+    decreaseButton.className = "store-qty-button game-target";
+    decreaseButton.type = "button";
+    decreaseButton.dataset.storeQtyAction = "decrease";
+    decreaseButton.dataset.storeQtyCart = String(item.cartId);
+    decreaseButton.dataset.gameId = `store-qty-minus-${item.cartId}`;
+    decreaseButton.setAttribute("aria-label", `Bajar cantidad de ${item.name}`);
+    decreaseButton.textContent = "-";
+
+    const quantityInput = document.createElement("input");
+    quantityInput.className = "store-qty-input";
+    quantityInput.type = "number";
+    quantityInput.min = "1";
+    quantityInput.max = "99";
+    quantityInput.inputMode = "numeric";
+    quantityInput.value = String(clampStoreQuantity(item.quantity));
+    quantityInput.dataset.storeQuantity = String(item.cartId);
+    quantityInput.setAttribute("aria-label", `Cantidad de ${item.name}`);
+
+    const increaseButton = document.createElement("button");
+    increaseButton.className = "store-qty-button game-target";
+    increaseButton.type = "button";
+    increaseButton.dataset.storeQtyAction = "increase";
+    increaseButton.dataset.storeQtyCart = String(item.cartId);
+    increaseButton.dataset.gameId = `store-qty-plus-${item.cartId}`;
+    increaseButton.setAttribute("aria-label", `Subir cantidad de ${item.name}`);
+    increaseButton.textContent = "+";
+
+    quantityControl.append(decreaseButton, quantityInput, increaseButton);
+    quantityLabel.append(quantityCaption, quantityControl);
+    options.append(sizeLabel, quantityLabel);
+
+    const removeButton = document.createElement("button");
+    removeButton.className = "store-remove-button game-target";
+    removeButton.type = "button";
+    removeButton.dataset.storeRemove = String(item.cartId);
+    removeButton.dataset.gameId = `store-remove-${item.cartId}`;
+    removeButton.setAttribute("aria-label", `Quitar ${item.name} del carrito`);
+    removeButton.textContent = "QUITAR";
+
+    lineItem.append(itemMain, options, removeButton);
+    el.storeBagList.appendChild(lineItem);
+  });
+
+  syncGameTargetListeners();
+}
+
+function openStoreCheckout() {
+  if (!el.storeCheckoutModal || !el.storeCheckoutForm || getStoreItemCount() === 0) return;
+
+  el.storeCheckoutForm.reset();
+  clearStoreCheckoutValidation();
+  if (el.storeTicketModal) el.storeTicketModal.hidden = true;
+  renderStoreTicket(null);
+  el.storeCheckoutModal.hidden = false;
+
+  window.setTimeout(() => {
+    const nameInput = getCheckoutField("name");
+    if (nameInput instanceof HTMLInputElement) nameInput.focus();
+  }, 0);
+}
+
+function closeStoreCheckout() {
+  if (!el.storeCheckoutModal) return;
+
+  el.storeCheckoutModal.hidden = true;
+  clearStoreCheckoutValidation();
+  if (el.storeCheckoutButton instanceof HTMLButtonElement && !el.storeCheckoutButton.disabled) {
+    el.storeCheckoutButton.focus();
+  }
+}
+
+function openStoreTicket() {
+  if (!el.storeTicketModal) return;
+
+  if (el.storeCheckoutModal) el.storeCheckoutModal.hidden = true;
+  el.storeTicketModal.hidden = false;
+
+  window.setTimeout(() => {
+    if (el.storeTicketDone instanceof HTMLButtonElement) el.storeTicketDone.focus();
+  }, 0);
+}
+
+function closeStoreTicket() {
+  if (el.storeTicketModal) el.storeTicketModal.hidden = true;
+  renderStoreTicket(null);
+  if (el.storeCheckoutButton instanceof HTMLButtonElement && !el.storeCheckoutButton.disabled) {
+    el.storeCheckoutButton.focus();
+  }
+}
+
+/* --- Envio automatico de ordenes por correo (Google Apps Script) --- */
+
+// Pega aqui la URL que te da Google al desplegar el Apps Script como
+// "Web app" (termina en /exec). Mientras quede vacia, el ticket se
+// genera igual pero no se envia el correo automatico.
+const STORE_ORDER_ENDPOINT = "https://script.google.com/macros/s/AKfycbx-uM0w9BRUzv28zZGx9xqHsU-C-fSrw8y5biuqN4A_w5fPL0SH6OyuayMln9ooSNoQFQ/exec";
+
+async function sendStoreOrderEmail(order) {
+  if (!STORE_ORDER_ENDPOINT) return { ok: false, reason: "not-configured" };
+
+  try {
+    const response = await fetch(STORE_ORDER_ENDPOINT, {
+      method: "POST",
+      // text/plain evita el preflight CORS que Apps Script no responde bien.
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(order),
+    });
+
+    if (!response.ok) return { ok: false, reason: "http-error" };
+    return { ok: true };
+  } catch (error) {
+    console.error("No se pudo enviar la orden por correo:", error);
+    return { ok: false, reason: "network-error" };
+  }
+}
+
+function setStoreTicketStatus(text, state) {
+  const status = el.storeTicket?.querySelector(".store-ticket-status");
+  if (!status) return;
+
+  status.textContent = text;
+  status.classList.remove("store-ticket-status--ok", "store-ticket-status--error");
+  if (state === "ok") status.classList.add("store-ticket-status--ok");
+  if (state === "error") status.classList.add("store-ticket-status--error");
+}
+
+function handleStoreCheckoutSubmit(event) {
+  event.preventDefault();
+  if (!el.storeCheckoutForm) return;
+
+  const formData = new FormData(el.storeCheckoutForm);
+  const customer = {
+    name: String(formData.get("name") || "").trim(),
+    email: String(formData.get("email") || "").trim(),
+    phone: String(formData.get("phone") || "").trim(),
+    address: String(formData.get("address") || "").trim(),
+    city: String(formData.get("city") || "").trim(),
+    country: String(formData.get("country") || "").trim(),
+    zip: String(formData.get("zip") || "").trim(),
+  };
+
+  if (!validateStoreCheckout(customer)) {
+    setStoreCheckoutError(true);
+    return;
+  }
+
+  const cart = state.storeBag.map(item => ({
+    productId: item.productId,
+    name: item.name,
+    size: item.size,
+    quantity: clampStoreQuantity(item.quantity),
+    unitPrice: item.price,
+    total: item.price * clampStoreQuantity(item.quantity),
+  }));
+  const total = getStoreTotal();
+  const order = {
+    orderNumber: createStoreOrderNumber(),
+    customer,
+    items: cart,
+    subtotal: getStoreSubtotal(),
+    shipping: getStoreShipping(),
+    total,
+    status: "Ticket generado",
+    createdAt: new Date(),
+  };
+
+  state.storeLastOrder = order;
+  console.log(order);
+  renderStoreTicket(order);
+  openStoreTicket();
+  submitStoreOrderEmail(order);
+}
+
+async function submitStoreOrderEmail(order) {
+  setStoreTicketStatus("Enviando orden por correo...", "sending");
+
+  const result = await sendStoreOrderEmail(order);
+
+  // Si el usuario ya cerro el ticket o abrio uno nuevo, no pisar el estado actual.
+  if (state.storeLastOrder !== order) return;
+
+  if (result.ok) {
+    setStoreTicketStatus("Orden registrada y enviada por correo.", "ok");
+  } else if (result.reason === "not-configured") {
+    setStoreTicketStatus("Orden registrada. Falta conectar el envio automatico a Gmail.", "error");
+  } else {
+    setStoreTicketStatus("Orden registrada, pero fallo el envio automatico del correo.", "error");
+  }
+}
+
+function validateStoreCheckout(customer) {
+  clearStoreCheckoutValidation();
+
+  const invalidFields = [];
+  if (!customer.name) invalidFields.push("name");
+  if (!isValidStoreEmail(customer.email)) invalidFields.push("email");
+  if (!customer.phone) invalidFields.push("phone");
+  if (!customer.country) invalidFields.push("country");
+  if (!customer.city) invalidFields.push("city");
+  if (!customer.address) invalidFields.push("address");
+  if (!customer.zip) invalidFields.push("zip");
+
+  invalidFields.forEach(fieldName => {
+    const field = getCheckoutField(fieldName);
+    field?.classList.add("is-invalid");
+  });
+
+  return invalidFields.length === 0;
+}
+
+function getCheckoutField(fieldName) {
+  return el.storeCheckoutForm?.elements.namedItem(fieldName) || null;
+}
+
+function isValidStoreEmail(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+function clearStoreCheckoutValidation() {
+  setStoreCheckoutError(false);
+  el.storeCheckoutForm?.querySelectorAll(".is-invalid").forEach(field => {
+    field.classList.remove("is-invalid");
+  });
+}
+
+function setStoreCheckoutError(isVisible) {
+  if (!el.storeCheckoutError) return;
+  el.storeCheckoutError.hidden = !isVisible;
+}
+
+function createStoreOrderNumber() {
+  const dateStamp = new Date().toISOString().slice(0, 10).replaceAll("-", "");
+  const sequence = String(state.storeNextOrderId++).padStart(4, "0");
+  return `DM-${dateStamp}-${sequence}`;
+}
+
+function renderStoreTicket(order) {
+  if (!el.storeTicket) return;
+
+  el.storeTicket.hidden = !order;
+  el.storeTicket.innerHTML = "";
+  if (!order) return;
+
+  const title = document.createElement("h3");
+  title.textContent = `Ticket ${order.orderNumber}`;
+
+  const status = document.createElement("p");
+  status.className = "store-ticket-status";
+  status.textContent = "Orden registrada.";
+
+  const customer = document.createElement("div");
+  customer.className = "store-ticket-block";
+  customer.innerHTML = `
+    <strong>Cliente</strong>
+    <span>${escapeStoreHtml(order.customer.name)} / ${escapeStoreHtml(order.customer.email)}</span>
+    <span>${escapeStoreHtml(order.customer.phone)}</span>
+    <span>${escapeStoreHtml(order.customer.address)}, ${escapeStoreHtml(order.customer.city)}, ${escapeStoreHtml(order.customer.country)} ${escapeStoreHtml(order.customer.zip)}</span>
+  `;
+
+  const items = document.createElement("ol");
+  items.className = "store-ticket-items";
+  order.items.forEach(item => {
+    const line = document.createElement("li");
+    line.className = "store-ticket-item";
+    line.innerHTML = `
+      <span class="store-ticket-item-name">${item.quantity}x ${escapeStoreHtml(item.name)} (${escapeStoreHtml(item.size)})</span>
+      <span class="store-ticket-item-price">${formatStoreMoney(item.total)}</span>
+    `;
+    items.appendChild(line);
+  });
+
+  const total = document.createElement("div");
+  total.className = "store-ticket-total";
+  total.innerHTML = `<span>Total</span><span>${formatStoreMoney(order.total)}</span>`;
+
+  el.storeTicket.append(title, status, customer, items, total);
+}
+
+function escapeStoreHtml(value) {
+  return String(value).replace(/[&<>"']/g, character => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;",
+  }[character]));
+}
+
+/* --- Renderizado 3D de productos con Three.js --- */
+
+function initStoreProduct3D() {
+  if (typeof THREE === "undefined") return;
+  document.querySelectorAll(".store-product-photo").forEach(setupStoreProduct3D);
+}
+
+function setupStoreProduct3D(photoEl) {
+  const img = photoEl.querySelector("img");
+  if (!(img instanceof HTMLImageElement)) return;
+
+  const canvas = document.createElement("canvas");
+  canvas.className = "store-product-3d-canvas";
+  photoEl.appendChild(canvas);
+
+  const RENDER_SCALE = 0.34;
+  const modelSrc = photoEl.dataset.storeModel || "";
+
+  const card = {
+    renderer: null,
+    scene: null,
+    camera: null,
+    group: null,
+    texture: null,
+    frameId: null,
+    ready: false,
+    hovering: false,
+    dragging: false,
+    lastX: 0,
+    lastY: 0,
+    rotY: -0.35,
+    rotX: 0.14,
+    velocity: 0.006,
+  };
+
+  /* Shader del plano de respaldo (imagen plana con efecto "bulge") */
+  const planeVertexShader = `
+    varying vec2 vUv;
+    uniform float bulge;
+    uniform float side;
+    void main() {
+      vUv = uv;
+      float nx = uv.x * 2.0 - 1.0;
+      float ny = uv.y * 2.0 - 1.0;
+      float dome = (1.0 - nx * nx) * (1.0 - ny * ny);
+      vec3 displaced = position;
+      displaced.z += dome * bulge * side;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(displaced, 1.0);
+    }
+  `;
+
+  const planeFragmentShader = `
+    uniform sampler2D map;
+    uniform float shade;
+    varying vec2 vUv;
+    void main() {
+      vec4 texel = texture2D(map, vUv);
+      if (texel.a < 0.08) discard;
+      float levels = 30.0;
+      float dither = (fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453) - 0.5) / levels;
+      vec3 color = texel.rgb * shade;
+      color = floor((color + dither) * levels + 0.5) / levels;
+      gl_FragColor = vec4(color, texel.a);
+    }
+  `;
+
+  /* Shader para la geometria 3D real (sin snapping de vertices: en mallas
+     densas ese snap abre grietas entre triangulos vecinos). Usa la textura
+     propia de cada mesh cuando existe, con iluminacion real por normales. */
+  const modelVertexShader = `
+    varying vec2 vUv;
+    varying vec3 vNormal;
+    void main() {
+      vUv = uv;
+      vNormal = normalize(normalMatrix * normal);
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `;
+
+  const modelFragmentShader = `
+    uniform sampler2D map;
+    uniform bool hasMap;
+    uniform vec3 baseColor;
+    varying vec2 vUv;
+    varying vec3 vNormal;
+    void main() {
+      vec4 texel = hasMap ? texture2D(map, vUv) : vec4(baseColor, 1.0);
+      if (texel.a < 0.2) discard;
+      vec3 lightDir = normalize(vec3(0.4, 0.65, 0.9));
+      float diffuse = max(dot(normalize(vNormal), lightDir), 0.0);
+      float shadeAmt = 0.55 + diffuse * 0.55;
+      float levels = 30.0;
+      float dither = (fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453) - 0.5) / levels;
+      vec3 color = texel.rgb * shadeAmt;
+      color = floor((color + dither) * levels + 0.5) / levels;
+      gl_FragColor = vec4(color, texel.a);
+    }
+  `;
+
+  function makeFallbackMaterial(sideValue, shadeValue) {
+    return new THREE.ShaderMaterial({
+      uniforms: {
+        map: { value: card.texture },
+        bulge: { value: 0.22 },
+        side: { value: sideValue },
+        shade: { value: shadeValue },
+      },
+      vertexShader: planeVertexShader,
+      fragmentShader: planeFragmentShader,
+      transparent: true,
+    });
+  }
+
+  function addFallbackPreview() {
+    addProductGraphicPreview({ includeBack: true });
+  }
+
+  function addProductGraphicPreview({ includeBack = false } = {}) {
+    const geometry = new THREE.PlaneGeometry(2.1, 2.1, 26, 26);
+    const frontMaterial = makeFallbackMaterial(1, 1.0);
+    const frontMesh = new THREE.Mesh(geometry, frontMaterial);
+    frontMesh.position.z = 0.12;
+    frontMesh.renderOrder = 3;
+    frontMaterial.depthTest = false;
+    frontMaterial.depthWrite = false;
+
+    if (includeBack) {
+      const backMaterial = makeFallbackMaterial(1, 0.45);
+      const backMesh = new THREE.Mesh(geometry, backMaterial);
+      backMesh.rotation.y = Math.PI;
+      backMesh.position.z = -0.06;
+      card.group.add(backMesh);
+    }
+
+    card.group.add(frontMesh);
+  }
+
+  function emptyModelGroup() {
+    while (card.group.children.length > 0) {
+      card.group.remove(card.group.children[0]);
+    }
+  }
+
+  function makeModelMaterial(originalMaterial) {
+    const sourceMap = originalMaterial && originalMaterial.map ? originalMaterial.map : null;
+    if (sourceMap) {
+      sourceMap.magFilter = THREE.NearestFilter;
+      sourceMap.minFilter = THREE.NearestFilter;
+      sourceMap.generateMipmaps = false;
+      sourceMap.needsUpdate = true;
+    }
+    const baseColor = originalMaterial && originalMaterial.color
+      ? originalMaterial.color
+      : new THREE.Color(0xd8d8d8);
+
+    return new THREE.ShaderMaterial({
+      uniforms: {
+        map: { value: sourceMap },
+        hasMap: { value: !!sourceMap },
+        baseColor: { value: baseColor },
+      },
+      vertexShader: modelVertexShader,
+      fragmentShader: modelFragmentShader,
+      transparent: true,
+      side: THREE.DoubleSide,
+    });
+  }
+
+  function normalizeModel(model) {
+    const box = new THREE.Box3().setFromObject(model);
+    const size = new THREE.Vector3();
+    const center = new THREE.Vector3();
+    box.getSize(size);
+    box.getCenter(center);
+
+    const maxAxis = Math.max(size.x, size.y, size.z);
+    if (maxAxis > 0) {
+      model.scale.multiplyScalar(2.25 / maxAxis);
+    }
+
+    model.position.sub(center.multiplyScalar(model.scale.x));
+    model.position.y -= 0.08;
+  }
+
+  function loadModelPreview() {
+    if (!modelSrc || typeof THREE.FBXLoader !== "function") {
+      photoEl.dataset.store3dStatus = "fallback";
+      addFallbackPreview();
+      return;
+    }
+
+    photoEl.dataset.store3dStatus = "loading";
+    addFallbackPreview();
+
+    const manager = new THREE.LoadingManager();
+    manager.setURLModifier(url => {
+      const assetName = url.split(/[\\/]/).pop() || "";
+      let decodedName = assetName;
+      try {
+        decodedName = decodeURIComponent(assetName);
+      } catch {
+        decodedName = assetName;
+      }
+      if (/^(FBX_normal|Your-Design-Here|SAWTIC ?TEMPLATE)\.png$/i.test(decodedName)) {
+        return img.currentSrc || img.src;
+      }
+      return url;
+    });
+
+    const loader = new THREE.FBXLoader(manager);
+    loader.load(
+      modelSrc,
+      model => {
+        let meshCount = 0;
+        model.traverse(child => {
+          if (!child.isMesh) return;
+          meshCount += 1;
+          child.material = Array.isArray(child.material)
+            ? child.material.map(makeModelMaterial)
+            : makeModelMaterial(child.material);
+          child.frustumCulled = false;
+        });
+
+        normalizeModel(model);
+        emptyModelGroup();
+        card.group.add(model);
+        photoEl.dataset.store3dStatus = "loaded";
+        photoEl.dataset.store3dMeshes = String(meshCount);
+      },
+      undefined,
+      () => {
+        photoEl.dataset.store3dStatus = "error";
+        if (card.group.children.length === 0) {
+          addFallbackPreview();
+          photoEl.dataset.store3dStatus = "fallback";
+        }
+      }
+    );
+  }
+
+  function ensureScene() {
+    if (card.ready) return;
+    card.ready = true;
+
+    const width = Math.max(photoEl.clientWidth, 1);
+    const height = Math.max(photoEl.clientHeight, 1);
+
+    card.renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: true, preserveDrawingBuffer: true });
+    card.renderer.setPixelRatio(1);
+    card.renderer.setClearColor(0x000000, 0);
+    card.renderer.setSize(Math.round(width * RENDER_SCALE), Math.round(height * RENDER_SCALE), false);
+
+    card.scene = new THREE.Scene();
+    card.camera = new THREE.PerspectiveCamera(28, width / height, 0.1, 20);
+    card.camera.position.set(0, 0, 4.2);
+
+    card.texture = new THREE.Texture(img);
+    card.texture.magFilter = THREE.NearestFilter;
+    card.texture.minFilter = THREE.NearestFilter;
+    card.texture.generateMipmaps = false;
+    card.texture.needsUpdate = true;
+
+    if (!img.complete) {
+      img.addEventListener("load", () => { card.texture.needsUpdate = true; }, { once: true });
+    }
+
+    card.group = new THREE.Group();
+    card.group.rotation.x = card.rotX;
+    card.group.rotation.y = card.rotY;
+    card.scene.add(card.group);
+    loadModelPreview();
+  }
+
+  function renderFrame() {
+    if (!card.dragging) {
+      card.rotY += card.velocity;
+    }
+    card.group.rotation.y = card.rotY;
+    card.group.rotation.x = card.rotX;
+    card.renderer.render(card.scene, card.camera);
+    card.frameId = requestAnimationFrame(renderFrame);
+  }
+
+  function start() {
+    ensureScene();
+    photoEl.classList.add("is-3d-active");
+    if (!card.frameId) renderFrame();
+  }
+
+  function toggle3D() {
+    if (photoEl.classList.contains("is-3d-active")) {
+      stop();
+    } else {
+      start();
+    }
+  }
+
+  function stop() {
+    photoEl.classList.remove("is-3d-active");
+    if (card.frameId) {
+      cancelAnimationFrame(card.frameId);
+      card.frameId = null;
+    }
+  }
+
+  function onPointerMove(event) {
+    if (!card.dragging) return;
+    const deltaX = event.clientX - card.lastX;
+    const deltaY = event.clientY - card.lastY;
+    card.lastX = event.clientX;
+    card.lastY = event.clientY;
+    card.rotY += deltaX * 0.012;
+    card.rotX += deltaY * 0.012;
+    card.rotX = Math.max(-1.1, Math.min(1.1, card.rotX));
+  }
+
+  function onPointerUp() {
+    card.dragging = false;
+    photoEl.classList.remove("is-dragging");
+    window.removeEventListener("pointermove", onPointerMove);
+    window.removeEventListener("pointerup", onPointerUp);
+    if (!isPhoneDevice() && !card.hovering) stop();
+  }
+
+  function onPointerDown(event) {
+    if (isPhoneDevice()) {
+      if (!photoEl.classList.contains("is-3d-active")) {
+        start();
+        return;
+      }
+    }
+
+    event.preventDefault();
+    card.dragging = true;
+    photoEl.classList.add("is-dragging");
+    card.lastX = event.clientX;
+    card.lastY = event.clientY;
+    window.addEventListener("pointermove", onPointerMove);
+    window.addEventListener("pointerup", onPointerUp);
+  }
+
+  if (!isPhoneDevice()) {
+    photoEl.addEventListener("pointerenter", () => {
+      card.hovering = true;
+      start();
+    });
+
+    photoEl.addEventListener("pointerleave", () => {
+      card.hovering = false;
+      if (!card.dragging) stop();
+    });
+  } else {
+    photoEl.addEventListener("click", () => {
+       if (!card.dragging && !photoEl.classList.contains("is-3d-active")) {
+           start();
+       }
+    });
+  }
+
+  canvas.addEventListener("pointerdown", onPointerDown);
+
+  window.addEventListener("resize", () => {
+    if (!card.ready) return;
+    const width = Math.max(photoEl.clientWidth, 1);
+    const height = Math.max(photoEl.clientHeight, 1);
+    card.camera.aspect = width / height;
+    card.camera.updateProjectionMatrix();
+    card.renderer.setSize(Math.round(width * RENDER_SCALE), Math.round(height * RENDER_SCALE), false);
+  });
+}
+
+/* ==========================================================================
+   11. SISTEMA DE NAVEGACIÓN Y TECLADO (GAME ACCESS)
+   ========================================================================== */
+
 function bindGameNavigation() {
   document.addEventListener("keydown", handleGameKeydown);
   syncGameTargetListeners();
@@ -2298,7 +2561,7 @@ function normalizeGameCommand(key) {
   if (loweredKey === "arrowdown" || loweredKey === "s") return "down";
   if (loweredKey === "arrowleft" || loweredKey === "a") return "left";
   if (loweredKey === "arrowright" || loweredKey === "d") return "right";
-  if (loweredKey === "enter" || loweredKey === " " || loweredKey === "space" || loweredKey === "spacebar") return "confirm";
+  if (loweredKey === "enter" || loweredKey === " " || loweredKey === "spacebar") return "confirm";
   return null;
 }
 
@@ -2441,6 +2704,100 @@ function isGameTargetVisible(target) {
   return rect.width > 0 && rect.height > 0;
 }
 
+/* ==========================================================================
+   12. FUNCIONES DE UTILIDAD Y AYUDANTES
+   ========================================================================== */
+
+function initStartupSound() {
+  if (!albumConfig.startupSound?.src) return;
+
+  const audio = new Audio(resolveAssetPath(albumConfig.startupSound.src));
+  audio.preload = "auto";
+  audio.volume = albumConfig.startupSound.volume;
+
+  state.startupAudio = audio;
+}
+
+function playStartupSound() {
+  if (!state.startupAudio || state.startupPlayed) return;
+
+  state.startupPlayed = true;
+  state.startupPending = false;
+  state.startupAudio.currentTime = 0;
+
+  const playPromise = state.startupAudio.play();
+  if (playPromise?.catch) {
+    playPromise.catch(() => {
+      state.startupPlayed = false;
+      state.startupPending = true;
+    });
+  }
+}
+
+function retryPendingStartupSound() {
+  if (!state.startupPending || state.startupPlayed) return;
+  playStartupSound();
+}
+
+function resolveAssetPath(path) {
+  try {
+    const normalizedPath = String(path)
+      .split("/")
+      .map(segment => {
+        if (!segment) return segment;
+        try {
+          return encodeURIComponent(decodeURIComponent(segment));
+        } catch {
+          return encodeURIComponent(segment);
+        }
+      })
+      .join("/");
+
+    return new URL(normalizedPath, document.baseURI).href;
+  } catch {
+    return encodeURI(path);
+  }
+}
+
+function getPlaylistTotal() {
+  const total = state.playlist.reduce((sum, track) => sum + timeToSeconds(track.duration), 0);
+  return formatTime(total);
+}
+
+function getCreditValues(values) {
+  if (!Array.isArray(values) || !values.length) return ["Agregar en código"];
+  return values;
+}
+
+function tickClock() {
+  const refresh = () => {
+    const now = new Date();
+
+    el.currentClock.textContent = now.toLocaleTimeString("es-DO", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+
+    if (el.desktopClock) {
+      el.desktopClock.textContent = now.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      });
+    }
+  };
+
+  refresh();
+  setInterval(refresh, 1000);
+}
+
+function wait(duration) {
+  return new Promise(resolve => {
+    window.setTimeout(resolve, duration);
+  });
+}
+
 function timeToSeconds(value) {
   if (!value || !value.includes(":")) return 0;
   const [minutesText, secondsText] = value.split(":");
@@ -2466,43 +2823,8 @@ function toGameToken(value) {
     .replace(/(^-|-$)/g, "");
 }
 
-function setPanelView(view) {
-  if (!view) return;
-  if (view !== "historia") {
-    stopStoryVoice();
-  }
-  if (view === "historia" && state.panelView !== "historia") {
-    state.storyMode = null;
-    stopStoryVoice();
-  }
-  state.panelView = view;
-
-  el.navItems.forEach(btn => {
-    btn.classList.toggle("active", btn.dataset.panel === view);
-  });
-
-  const isPlayerView = view === "reproductor";
-  el.mainStage.classList.toggle("is-hidden", !isPlayerView);
-  el.playlistPanel.classList.toggle("is-hidden", !isPlayerView);
-  el.contentWindow.hidden = isPlayerView;
-  el.contentWindow.classList.toggle("is-visible", !isPlayerView);
-
-  if (isPlayerView) {
-    renderPlayerPanel();
-    return;
-  }
-
-  if (view === "creditos") {
-    renderCreditsWindow();
-    return;
-  }
-
-  if (view === "historia") {
-    renderStoryWindow();
-    return;
-  }
-
-  renderArtworksWindow();
-}
+/* ==========================================================================
+   EJECUCIÓN INICIAL
+   ========================================================================== */
 
 init();

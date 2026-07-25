@@ -35,7 +35,7 @@ if ($storeMarkup -match 'COMING SOON|PROXIMAMENTE|PRÓXIMAMENTE') {
   throw "Expected TIENDA to render a clothing shop, not a coming soon placeholder"
 }
 
-foreach ($requiredText in @("TIENDA", "TEES", "VOLTICMANIA", "SAWPULSE", "SIGNAL TEE", "BOLSA", "TOTAL")) {
+foreach ($requiredText in @("TIENDA", "TEES", "VOLTICMANIA", "SAWPULSE", "BOLSA", "TOTAL")) {
   if ($storeMarkup -notmatch $requiredText) {
     throw "Expected TIENDA window to include $requiredText"
   }
@@ -53,7 +53,7 @@ foreach ($requiredEmptyCartText in @('0 ITEMS', 'BOLSA VACIA', 'RD\$0\.00', 'RD\
   }
 }
 
-foreach ($requiredPesoText in @('RD\$1,600\.00', 'RD\$1,500', 'RD\$1,700\.00')) {
+foreach ($requiredPesoText in @('RD\$1,600', 'RD\$1,500')) {
   if ($storeMarkup -notmatch $requiredPesoText) {
     throw "Expected TIENDA product prices to use Dominican pesos: $requiredPesoText"
   }
@@ -86,13 +86,11 @@ foreach ($requiredMarkup in @(
   'id="store-checkout-modal"',
   'id="store-checkout-form"',
   'id="store-checkout-error"',
-  'data-store-product="draco-tee"',
-  'data-store-product="voltic-tee"',
-  'data-store-product="signal-tee"',
+  'data-store-product="volticmania-tee"',
+  'data-store-product="sawpulse-tee"',
   'data-store-sizes="S,M,L,XL"',
-  'data-store-add="draco-tee"',
-  'data-store-add="voltic-tee"',
-  'data-store-add="signal-tee"'
+  'data-store-add="volticmania-tee"',
+  'data-store-add="sawpulse-tee"'
 )) {
   if ($storeMarkup -notmatch [regex]::Escape($requiredMarkup)) {
     throw "Expected TIENDA markup to include $requiredMarkup"
@@ -122,7 +120,7 @@ if ($styles -match '\.desktop-window-store\s*\{[\s\S]*top:\s*186px;[\s\S]*height
   throw "Expected TIENDA window not to use the old taskbar-overlapping geometry"
 }
 
-foreach ($requiredSelector in @(".store-remove-button", ".store-bag-empty", ".store-checkout-button:disabled", ".store-qty-control", ".store-size-select", ".store-checkout-modal", ".store-payment-fieldset")) {
+foreach ($requiredSelector in @(".store-remove-button", ".store-bag-empty", ".store-checkout-button:disabled", ".store-qty-control", ".store-size-select", ".store-checkout-modal", ".store-ticket")) {
   if ($styles -notmatch [regex]::Escape($requiredSelector)) {
     throw "Expected cart interaction styles for $requiredSelector"
   }
@@ -151,13 +149,15 @@ foreach ($requiredScript in @(
   'function renderStoreBag\(\)',
   'function openStoreCheckout\(\)',
   'function handleStoreCheckoutSubmit\(event\)',
-  'function validateStoreCheckout\(customer, paymentMethod\)',
+  'function validateStoreCheckout\(customer\)',
+  'function createStoreOrderNumber\(\)',
+  'function renderStoreTicket\(order\)',
   'data-store-remove',
   'dataset\.storeSize',
   'dataset\.storeQuantity',
   'store-remove-button game-target',
   'console\.log\(order\);',
-  'status:\s*"Pending"',
+  'status:\s*"Ticket generado"',
   'RD\$',
   'el\.storeRegisterTotal\.textContent = formatStoreMoney\(total, \{ cents: true \}\);'
 )) {
