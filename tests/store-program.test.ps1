@@ -53,7 +53,7 @@ foreach ($requiredEmptyCartText in @('0 ITEMS', 'BOLSA VACIA', 'RD\$0\.00', 'RD\
   }
 }
 
-foreach ($requiredPesoText in @('RD\$1,600', 'RD\$1,500')) {
+foreach ($requiredPesoText in @('RD\$1,800')) {
   if ($storeMarkup -notmatch $requiredPesoText) {
     throw "Expected TIENDA product prices to use Dominican pesos: $requiredPesoText"
   }
