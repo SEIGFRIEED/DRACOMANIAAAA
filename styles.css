@@ -1824,12 +1824,10 @@
 
       .store-checkout-modal {
         position: fixed;
-        inset: auto;
-        top: 0;
-        left: 0;
-        width: var(--app-width, 100%);
-        height: var(--app-height, 100%);
-        z-index: 95;
+        inset: 0;
+        width: auto;
+        height: auto;
+        z-index: 500;
         padding: 0;
         display: flex;
         background: #000000;
@@ -1932,11 +1930,10 @@
        PC) y pasa a ser una ventana completa que tapa toda la tienda. */
     body.is-phone-device .store-checkout-modal {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: var(--app-width, 100%);
-      height: var(--app-height, 100%);
-      z-index: 95;
+      inset: 0;
+      width: auto;
+      height: auto;
+      z-index: 500;
       padding: 0;
       display: flex;
       background: #000000;

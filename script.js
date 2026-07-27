@@ -241,6 +241,54 @@ const el = {
    3. INICIALIZACIÓN DE LA APLICACIÓN
    ========================================================================== */
 
+let storeModalAnchor = null;
+
+function ensureStoreModalAnchor() {
+  if (storeModalAnchor) return;
+  const firstModal = el.storeCheckoutModal || el.storeTicketModal;
+  if (!(firstModal instanceof HTMLElement) || !firstModal.parentElement) return;
+  storeModalAnchor = document.createComment("store-checkout-modal-anchor");
+  firstModal.parentElement.insertBefore(storeModalAnchor, firstModal);
+}
+
+function relocateStoreModalsForDevice(phoneDevice) {
+  // En escritorio, el checkout debe verse como un popup centrado DENTRO
+  // de la ventana "TIENDA" (asi se ve en el mock de PC). En movil, en
+  // cambio, el checkout tiene que taparlo todo por completo. El modal
+  // vivia siempre anidado dentro de la ventana "TIENDA", que tiene su
+  // propio position:absolute + z-index. En Chrome DevTools (motor Blink)
+  // el position:fixed del modal igual lograba taparlo todo, pero en
+  // Safari/Chrome real de iPhone (motor WebKit) quedaba atrapado dentro
+  // del contexto de apilamiento de esa ventana y no cubria la barra de
+  // titulo de "TIENDA", dejandola asomar y cortada fuera de pantalla.
+  // La solucion: en movil, sacamos el modal a ser hijo directo de
+  // <body> (queda totalmente fuera de ese contexto y se ve completo en
+  // cualquier navegador); en escritorio lo regresamos a su lugar
+  // original para conservar el look de popup centrado.
+  ensureStoreModalAnchor();
+  if (!storeModalAnchor) return;
+
+  const modals = [el.storeCheckoutModal, el.storeTicketModal].filter(
+    modal => modal instanceof HTMLElement
+  );
+
+  if (phoneDevice) {
+    modals.forEach(modal => {
+      if (modal.parentElement !== document.body) {
+        document.body.appendChild(modal);
+      }
+    });
+  } else {
+    let ref = storeModalAnchor;
+    modals.forEach(modal => {
+      if (modal.previousSibling !== ref) {
+        ref.parentElement.insertBefore(modal, ref.nextSibling);
+      }
+      ref = modal;
+    });
+  }
+}
+
 function init() {
   syncViewportMetrics();
   syncDeviceClasses();
@@ -501,6 +549,7 @@ function syncDeviceClasses() {
   ));
 
   document.body.classList.toggle("is-phone-device", phoneDevice);
+  relocateStoreModalsForDevice(phoneDevice);
   document.body.classList.toggle("is-phone-portrait", phoneDevice && portraitOrientation);
   document.body.classList.toggle("is-phone-landscape", phoneDevice && !portraitOrientation);
   document.body.classList.toggle("has-phone-open-window", phoneDevice && hasOpenProgram);
