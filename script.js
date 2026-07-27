@@ -116,6 +116,9 @@ const albumConfig = {
 };
 
 const STORE_SHIPPING_FEE = 400;
+const STORE_ORDER_ENDPOINT = "https://dracomaniamail.meliodasjimenez34.workers.dev/";
+const STORE_PAYPAL_CLIENT_ID = "BAAaVoF7BktEv96xuiS02WPhGtzzhDuCtCjSADVyd-vmjL1m6Om0vzFK67Oho7_jGfpzQWe7wV0d5DuiVl";
+const STORE_PAYPAL_CURRENCY = "USD";
 
 const state = {
   playlist:      albumConfig.tracks.map(track => ({ ...track })),
@@ -141,6 +144,8 @@ const state = {
   storeNextCartId: 1,
   storeNextOrderId: 1,
   storeLastOrder: null,
+  storePendingOrder: null,
+  storePayPalSdkPromise: null,
   bootStarted: false,
   bootComplete: false,
   nextWindowZ:  20,
@@ -195,6 +200,10 @@ const el = {
   storeCheckoutModal: document.getElementById("store-checkout-modal"),
   storeCheckoutForm: document.getElementById("store-checkout-form"),
   storeCheckoutError: document.getElementById("store-checkout-error"),
+  storePaymentPanel: document.getElementById("store-payment-panel"),
+  storePaymentMessage: document.getElementById("store-payment-message"),
+  storePayPalButtons: document.getElementById("store-paypal-buttons"),
+  storeOtherMethodField: document.getElementById("store-other-method-field"),
   storeTicket:       document.getElementById("store-ticket"),
   storeCheckoutClose: document.getElementById("store-checkout-close"),
   storeCheckoutCancel: document.getElementById("store-checkout-cancel"),
@@ -1691,6 +1700,14 @@ function bindStoreEvents() {
   el.storeCheckoutClose?.addEventListener("click", closeStoreCheckout);
   el.storeCheckoutCancel?.addEventListener("click", closeStoreCheckout);
   el.storeCheckoutForm?.addEventListener("submit", handleStoreCheckoutSubmit);
+  el.storeCheckoutForm?.addEventListener("change", event => {
+    if (event.target instanceof HTMLInputElement && event.target.name === "paymentMethod") {
+      clearStorePaymentPanel();
+      if (el.storeOtherMethodField) {
+        el.storeOtherMethodField.hidden = event.target.value !== "otro";
+      }
+    }
+  });
   el.storeTicketClose?.addEventListener("click", closeStoreTicket);
   el.storeTicketDone?.addEventListener("click", closeStoreTicket);
 }
@@ -1923,6 +1940,8 @@ function openStoreCheckout() {
 
   el.storeCheckoutForm.reset();
   clearStoreCheckoutValidation();
+  clearStorePaymentPanel();
+  if (el.storeOtherMethodField) el.storeOtherMethodField.hidden = true;
   if (el.storeTicketModal) el.storeTicketModal.hidden = true;
   renderStoreTicket(null);
   el.storeCheckoutModal.hidden = false;
@@ -1938,6 +1957,7 @@ function closeStoreCheckout() {
 
   el.storeCheckoutModal.hidden = true;
   clearStoreCheckoutValidation();
+  clearStorePaymentPanel();
   if (el.storeCheckoutButton instanceof HTMLButtonElement && !el.storeCheckoutButton.disabled) {
     el.storeCheckoutButton.focus();
   }
@@ -1962,12 +1982,7 @@ function closeStoreTicket() {
   }
 }
 
-/* --- Envio automatico de ordenes por correo (Google Apps Script) --- */
-
-// Pega aqui la URL que te da Google al desplegar el Apps Script como
-// "Web app" (termina en /exec). Mientras quede vacia, el ticket se
-// genera igual pero no se envia el correo automatico.
-const STORE_ORDER_ENDPOINT = "https://dracomaniamail.meliodasjimenez34.workers.dev/";
+/* --- Pagos y envio automatico de ordenes por correo (Cloudflare Worker + Resend) --- */
 
 async function sendStoreOrderEmail(order) {
   if (!STORE_ORDER_ENDPOINT) return { ok: false, reason: "not-configured" };
@@ -1988,6 +2003,26 @@ async function sendStoreOrderEmail(order) {
   }
 }
 
+async function sendStorePaymentRequest(action, payload) {
+  if (!STORE_ORDER_ENDPOINT) return { ok: false, reason: "not-configured" };
+
+  try {
+    const response = await fetch(STORE_ORDER_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ action, ...payload }),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || data.ok === false) {
+      return { ok: false, reason: data.error || "http-error", data };
+    }
+    return { ok: true, data };
+  } catch (error) {
+    console.error("No se pudo procesar el pago:", error);
+    return { ok: false, reason: "network-error" };
+  }
+}
+
 function setStoreTicketStatus(text, state) {
   const status = el.storeTicket?.querySelector(".store-ticket-status");
   if (!status) return;
@@ -2002,6 +2037,21 @@ function handleStoreCheckoutSubmit(event) {
   event.preventDefault();
   if (!el.storeCheckoutForm) return;
 
+  clearStorePaymentPanel();
+  const order = createStoreOrderFromCheckout();
+  if (!order) return;
+
+  if (order.payment.method === "paypal") {
+    prepareStorePayPalPayment(order);
+    return;
+  }
+
+  completeStoreOrder(order, { sendEmail: true });
+}
+
+function createStoreOrderFromCheckout() {
+  if (!el.storeCheckoutForm) return null;
+
   const formData = new FormData(el.storeCheckoutForm);
   const customer = {
     name: String(formData.get("name") || "").trim(),
@@ -2015,7 +2065,7 @@ function handleStoreCheckoutSubmit(event) {
 
   if (!validateStoreCheckout(customer)) {
     setStoreCheckoutError(true);
-    return;
+    return null;
   }
 
   const cart = state.storeBag.map(item => ({
@@ -2027,6 +2077,11 @@ function handleStoreCheckoutSubmit(event) {
     total: item.price * clampStoreQuantity(item.quantity),
   }));
   const total = getStoreTotal();
+  const selectedMethod = getSelectedStorePaymentMethod();
+  const paymentMethod = selectedMethod === "otro"
+    ? String(formData.get("otherMethod") || "otro")
+    : selectedMethod;
+
   const order = {
     orderNumber: createStoreOrderNumber(),
     customer,
@@ -2034,15 +2089,139 @@ function handleStoreCheckoutSubmit(event) {
     subtotal: getStoreSubtotal(),
     shipping: getStoreShipping(),
     total,
-    status: "Ticket generado",
+    status: "Pago pendiente",
+    payment: {
+      method: paymentMethod,
+      status: "pending",
+      currency: "DOP",
+    },
     createdAt: new Date(),
   };
 
+  return order;
+}
+
+function completeStoreOrder(order, options = {}) {
   state.storeLastOrder = order;
+  state.storePendingOrder = null;
   console.log(order);
   renderStoreTicket(order);
   openStoreTicket();
-  submitStoreOrderEmail(order);
+  if (options.sendEmail) {
+    submitStoreOrderEmail(order);
+  } else if (options.statusText) {
+    setStoreTicketStatus(options.statusText, options.statusState || "ok");
+  }
+}
+
+function getSelectedStorePaymentMethod() {
+  const field = el.storeCheckoutForm?.elements.namedItem("paymentMethod");
+  if (field instanceof RadioNodeList) return String(field.value || "paypal");
+  if (field instanceof HTMLInputElement) return field.value || "paypal";
+  return "paypal";
+}
+
+function clearStorePaymentPanel() {
+  state.storePendingOrder = null;
+  if (el.storePaymentPanel) el.storePaymentPanel.hidden = true;
+  if (el.storePaymentMessage) {
+    el.storePaymentMessage.textContent = "";
+    el.storePaymentMessage.classList.remove("store-payment-message--error", "store-payment-message--ok");
+  }
+  if (el.storePayPalButtons) el.storePayPalButtons.innerHTML = "";
+}
+
+function setStorePaymentMessage(text, stateName = "") {
+  if (!el.storePaymentPanel || !el.storePaymentMessage) return;
+  el.storePaymentPanel.hidden = false;
+  el.storePaymentMessage.textContent = text;
+  el.storePaymentMessage.classList.remove("store-payment-message--error", "store-payment-message--ok");
+  if (stateName) el.storePaymentMessage.classList.add(`store-payment-message--${stateName}`);
+}
+
+async function prepareStorePayPalPayment(order) {
+  if (!STORE_PAYPAL_CLIENT_ID) {
+    setStorePaymentMessage("Falta configurar el PayPal Client ID en script.js.", "error");
+    return;
+  }
+
+  state.storePendingOrder = order;
+  setStorePaymentMessage("Conectando con PayPal...");
+
+  try {
+    await loadStorePayPalSdk();
+    if (!window.paypal || !el.storePayPalButtons) throw new Error("PayPal SDK no disponible.");
+
+    el.storePayPalButtons.innerHTML = "";
+    setStorePaymentMessage("Confirma el pago con PayPal para completar la orden.");
+
+    window.paypal.Buttons({
+      style: {
+        layout: "vertical",
+        color: "gold",
+        shape: "rect",
+        label: "paypal",
+      },
+      createOrder: async () => {
+        const result = await sendStorePaymentRequest("paypal-create-order", { order });
+        if (!result.ok) throw new Error(result.reason || "No se pudo crear la orden PayPal.");
+        return result.data.paypalOrderId;
+      },
+      onApprove: async data => {
+        setStorePaymentMessage("Capturando pago y enviando correo...");
+        const result = await sendStorePaymentRequest("paypal-capture-order", {
+          order,
+          paypalOrderId: data.orderID,
+        });
+        if (!result.ok) throw new Error(result.reason || "No se pudo confirmar el pago.");
+
+        const paidOrder = result.data.order || {
+          ...order,
+          status: "Pago confirmado",
+          payment: {
+            ...order.payment,
+            status: "paid",
+            provider: "paypal",
+            providerOrderId: data.orderID,
+          },
+        };
+        completeStoreOrder(paidOrder, {
+          sendEmail: false,
+          statusText: "Pago confirmado y correo enviado.",
+          statusState: "ok",
+        });
+      },
+      onError: error => {
+        console.error("PayPal checkout error:", error);
+        setStorePaymentMessage("PayPal no pudo completar el pago. Intenta otra vez.", "error");
+      },
+    }).render(el.storePayPalButtons);
+  } catch (error) {
+    console.error(error);
+    setStorePaymentMessage("No se pudo cargar PayPal. Revisa la configuracion del checkout.", "error");
+  }
+}
+
+function loadStorePayPalSdk() {
+  if (window.paypal) return Promise.resolve();
+  if (state.storePayPalSdkPromise) return state.storePayPalSdkPromise;
+
+  const script = document.createElement("script");
+  const params = new URLSearchParams({
+    "client-id": STORE_PAYPAL_CLIENT_ID,
+    currency: STORE_PAYPAL_CURRENCY,
+    intent: "capture",
+  });
+  script.src = `https://www.paypal.com/sdk/js?${params.toString()}`;
+  script.async = true;
+
+  state.storePayPalSdkPromise = new Promise((resolve, reject) => {
+    script.addEventListener("load", resolve, { once: true });
+    script.addEventListener("error", reject, { once: true });
+  });
+
+  document.head.appendChild(script);
+  return state.storePayPalSdkPromise;
 }
 
 async function submitStoreOrderEmail(order) {

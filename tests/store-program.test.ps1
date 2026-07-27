@@ -86,6 +86,10 @@ foreach ($requiredMarkup in @(
   'id="store-checkout-modal"',
   'id="store-checkout-form"',
   'id="store-checkout-error"',
+  'id="store-payment-panel"',
+  'id="store-paypal-buttons"',
+  'name="paymentMethod" value="paypal"',
+  'name="paymentMethod" value="qik"',
   'data-store-product="volticmania-tee"',
   'data-store-product="sawpulse-tee"',
   'data-store-sizes="S,M,L,XL"',
@@ -126,6 +130,12 @@ foreach ($requiredSelector in @(".store-remove-button", ".store-bag-empty", ".st
   }
 }
 
+foreach ($requiredSelector in @(".store-payment-options", ".store-payment-panel", ".store-paypal-buttons")) {
+  if ($styles -notmatch [regex]::Escape($requiredSelector)) {
+    throw "Expected payment styles for $requiredSelector"
+  }
+}
+
 if ($script -notmatch 'tienda:\s*\{\s*open:\s*false,\s*minimized:\s*false,\s*maximized:\s*false') {
   throw "Expected TIENDA window state"
 }
@@ -157,7 +167,13 @@ foreach ($requiredScript in @(
   'dataset\.storeQuantity',
   'store-remove-button game-target',
   'console\.log\(order\);',
-  'status:\s*"Ticket generado"',
+  'status:\s*"Pago pendiente"',
+  'STORE_PAYPAL_CLIENT_ID',
+  'STORE_QIK_PAYMENT_URL',
+  'function prepareStorePayPalPayment\(order\)',
+  'function prepareStoreQikPayment\(order\)',
+  'paypal-create-order',
+  'paypal-capture-order',
   'RD\$',
   'el\.storeRegisterTotal\.textContent = formatStoreMoney\(total, \{ cents: true \}\);'
 )) {

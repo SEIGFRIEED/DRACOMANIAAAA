@@ -395,7 +395,18 @@
 
           <div class="system-window-body gallery-window-body">
             <div class="gallery-scroll-view game-target" data-game-id="gallery-scroll-view" tabindex="-1" aria-label="Galeria de fotos, desliza hacia abajo para ver mas">
-              <img class="gallery-scroll-image" src="assets/gallery/galeria-strip.webp" alt="Galeria DRACOMANIA" loading="lazy" />
+              <img
+                class="gallery-scroll-image"
+                src="assets/gallery/galeria-strip-760.webp"
+                srcset="assets/gallery/galeria-strip-760.webp 760w, assets/gallery/galeria-strip-1080.webp 1080w, assets/gallery/galeria-strip.webp 1223w"
+                sizes="(max-width: 900px) calc(100vw - 12px), 760px"
+                width="1223"
+                height="8836"
+                alt="Galeria DRACOMANIA"
+                loading="lazy"
+                decoding="async"
+                fetchpriority="low"
+              />
             </div>
           </div>
         </section>
@@ -557,9 +568,34 @@
                       </label>
                     </div>
 
+                    <fieldset class="store-payment-options" aria-label="Metodo de pago">
+                      <legend>Metodo de pago</legend>
+                      <label class="store-payment-option">
+                        <input type="radio" name="paymentMethod" value="paypal" checked />
+                        <span>PayPal</span>
+                      </label>
+                      <label class="store-payment-option">
+                        <input type="radio" name="paymentMethod" value="otro" />
+                        <span>Otro metodo de pago</span>
+                      </label>
+                    </fieldset>
+
+                    <label class="store-checkout-field" id="store-other-method-field" for="checkout-other-method" hidden>
+                      <span>Selecciona el metodo</span>
+                      <select id="checkout-other-method" name="otherMethod">
+                        <option value="transferencia">Transferencia</option>
+                        <option value="efectivo">Efectivo</option>
+                      </select>
+                    </label>
+
+                    <div class="store-payment-panel" id="store-payment-panel" hidden>
+                      <p class="store-payment-message" id="store-payment-message"></p>
+                      <div class="store-paypal-buttons" id="store-paypal-buttons"></div>
+                    </div>
+
                     <div class="store-checkout-actions">
                       <button class="store-dialog-button" id="store-checkout-cancel" type="button">Cancelar</button>
-                      <button class="store-dialog-button store-dialog-button-primary" type="submit">Generar ticket</button>
+                      <button class="store-dialog-button store-dialog-button-primary" type="submit">Continuar al pago</button>
                     </div>
                   </div>
                 </form>
