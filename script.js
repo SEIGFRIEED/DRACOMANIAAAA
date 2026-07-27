@@ -203,7 +203,6 @@ const el = {
   storePaymentPanel: document.getElementById("store-payment-panel"),
   storePaymentMessage: document.getElementById("store-payment-message"),
   storePayPalButtons: document.getElementById("store-paypal-buttons"),
-  storeOtherMethodField: document.getElementById("store-other-method-field"),
   storeTicket:       document.getElementById("store-ticket"),
   storeCheckoutClose: document.getElementById("store-checkout-close"),
   storeCheckoutCancel: document.getElementById("store-checkout-cancel"),
@@ -1703,9 +1702,6 @@ function bindStoreEvents() {
   el.storeCheckoutForm?.addEventListener("change", event => {
     if (event.target instanceof HTMLInputElement && event.target.name === "paymentMethod") {
       clearStorePaymentPanel();
-      if (el.storeOtherMethodField) {
-        el.storeOtherMethodField.hidden = event.target.value !== "otro";
-      }
     }
   });
   el.storeTicketClose?.addEventListener("click", closeStoreTicket);
@@ -1941,7 +1937,6 @@ function openStoreCheckout() {
   el.storeCheckoutForm.reset();
   clearStoreCheckoutValidation();
   clearStorePaymentPanel();
-  if (el.storeOtherMethodField) el.storeOtherMethodField.hidden = true;
   if (el.storeTicketModal) el.storeTicketModal.hidden = true;
   renderStoreTicket(null);
   el.storeCheckoutModal.hidden = false;
@@ -2077,11 +2072,6 @@ function createStoreOrderFromCheckout() {
     total: item.price * clampStoreQuantity(item.quantity),
   }));
   const total = getStoreTotal();
-  const selectedMethod = getSelectedStorePaymentMethod();
-  const paymentMethod = selectedMethod === "otro"
-    ? String(formData.get("otherMethod") || "otro")
-    : selectedMethod;
-
   const order = {
     orderNumber: createStoreOrderNumber(),
     customer,
@@ -2091,7 +2081,7 @@ function createStoreOrderFromCheckout() {
     total,
     status: "Pago pendiente",
     payment: {
-      method: paymentMethod,
+      method: getSelectedStorePaymentMethod(),
       status: "pending",
       currency: "DOP",
     },

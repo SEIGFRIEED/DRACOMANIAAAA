@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=20260722a" />
+  <link rel="stylesheet" href="styles.css?v=20260727a" />
 </head>
 <body>
   <section class="orientation-gate" id="orientation-gate" aria-live="polite" hidden>
@@ -575,18 +575,14 @@
                         <span>PayPal</span>
                       </label>
                       <label class="store-payment-option">
-                        <input type="radio" name="paymentMethod" value="otro" />
-                        <span>Otro metodo de pago</span>
+                        <input type="radio" name="paymentMethod" value="transferencia" />
+                        <span>Transferencia</span>
+                      </label>
+                      <label class="store-payment-option">
+                        <input type="radio" name="paymentMethod" value="efectivo" />
+                        <span>Efectivo</span>
                       </label>
                     </fieldset>
-
-                    <label class="store-checkout-field" id="store-other-method-field" for="checkout-other-method" hidden>
-                      <span>Selecciona el metodo</span>
-                      <select id="checkout-other-method" name="otherMethod">
-                        <option value="transferencia">Transferencia</option>
-                        <option value="efectivo">Efectivo</option>
-                      </select>
-                    </label>
 
                     <div class="store-payment-panel" id="store-payment-panel" hidden>
                       <p class="store-payment-message" id="store-payment-message"></p>
@@ -624,6 +620,6 @@
     </section>
   </main>
 
-  <script src="script.js?v=20260723a"></script>
+  <script src="script.js?v=20260727a"></script>
 </body>
 </html>

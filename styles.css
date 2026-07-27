@@ -1345,8 +1345,7 @@
     /* LÍNEAS 619-631 ORIGINALES */
 .store-size-select,
 .store-qty-input,
-.store-checkout-field input,
-.store-checkout-field select {
+.store-checkout-field input {
   width: 100%;
   min-height: 24px;
   border: 2px solid #808080;
@@ -1530,8 +1529,7 @@
       font-weight: 700;
     }
 
-    .store-checkout-field input,
-    .store-checkout-field select {
+    .store-checkout-field input {
       padding: 3px 5px;
     }
 
@@ -1542,7 +1540,7 @@
 
     .store-payment-options {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 8px;
       min-width: 0;
       margin: 0;
@@ -1621,8 +1619,7 @@
        viewport, para que tambien funcione en landscape (>760px). */
     body.is-phone-device .store-size-select,
     body.is-phone-device .store-qty-input,
-    body.is-phone-device .store-checkout-field input,
-    body.is-phone-device .store-checkout-field select {
+    body.is-phone-device .store-checkout-field input {
       font-size: 16px;
     }
 
@@ -1919,7 +1916,6 @@
       }
 
       .store-checkout-field input,
-      .store-checkout-field select,
       .store-size-select,
       .store-qty-input {
         font-size: 16px;
@@ -2101,7 +2097,6 @@
     }
 
     body.is-phone-device .store-checkout-field input,
-    body.is-phone-device .store-checkout-field select,
     body.is-phone-device .store-size-select,
     body.is-phone-device .store-qty-input {
       min-height: 30px;
