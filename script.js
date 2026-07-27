@@ -117,7 +117,7 @@ const albumConfig = {
 
 const STORE_SHIPPING_FEE = 400;
 const STORE_ORDER_ENDPOINT = "https://dracomaniamail.meliodasjimenez34.workers.dev/";
-const STORE_PAYPAL_CLIENT_ID = "BAAaVoF7BktEv96xuiS02WPhGtzzhDuCtCjSADVyd-vmjL1m6Om0vzFK67Oho7_jGfpzQWe7wV0d5DuiVl";
+const STORE_PAYPAL_CLIENT_ID = "BAAoykWRRT_aMiGkVVuHnsXIUqSMuJPGoYTqqn4KA7bj7BrLpgGv1Yk5xsbDTxsQ_LcXUlfQ3ZCMpaAXlsBAAaVoF7BktEv96xuiS02WPhGtzzhDuCtCjSADVyd-vmjL1m6Om0vzFK67Oho7_jGfpzQWe7wV0d5DuiVl";
 const STORE_PAYPAL_CURRENCY = "USD";
 
 const state = {
@@ -2005,7 +2005,7 @@ async function sendStorePaymentRequest(action, payload) {
     const response = await fetch(STORE_ORDER_ENDPOINT, {
       method: "POST",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({ action, ...payload }),
+     body: JSON.stringify({ action, ...payload }),
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok || data.ok === false) {
